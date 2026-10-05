@@ -76,8 +76,8 @@ function HangingVines({ position, length = 6, count = 5 }) {
     const list = [];
     for (let i = 0; i < count; i++) {
       const ox = (i - (count - 1) / 2) * 0.8;
-      const oz = (Math.random() - 0.5) * 0.5;
-      const h = length * (0.6 + Math.random() * 0.5);
+      const oz = Math.sin(i * 2.7) * 0.25;
+      const h = length * (0.65 + (Math.sin(i * 4.3) * 0.5 + 0.5) * 0.35);
       list.push({ ox, oz, h });
     }
     return list;
@@ -225,9 +225,9 @@ export default function GreekFloatingIslands() {
       island5Ref.current.rotation.x = Math.sin(t * 0.05) * 0.006;
     }
 
-    // Scroll waterfall texture downwards
-    if (waterfallTex) {
-      waterfallTex.offset.y -= delta * 0.9;
+    // Scroll waterfall texture downwards via mesh material reference
+    if (waterfallMeshRef.current?.material?.map) {
+      waterfallMeshRef.current.material.map.offset.y -= delta * 0.9;
     }
 
     // Flickering eternal flame on Island 3 brazier

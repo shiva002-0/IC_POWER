@@ -89,11 +89,14 @@ function Eagle({ radius, speed, altitude, initialAngle, flapSpeed }) {
   );
 }
 
-// 2. Physical Mountain Waterfall plunging sheer from Mount Olympus into the Aegean Sea
-function MountainWaterfall() {
-  const waterFlowRef = useRef(null);
+// 2. Physical Multi-Tiered Mountain Waterfalls plunging from Mount Olympus terraces into the Aegean Sea
+function TieredMountainWaterfalls() {
+  const mainFlowRef = useRef(null);
+  const upperFlowRef = useRef(null);
+  const eastFlowRef = useRef(null);
   const seaSplashRef = useRef(null);
   const seaMistRef = useRef(null);
+  const eastSplashRef = useRef(null);
 
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
@@ -102,6 +105,10 @@ function MountainWaterfall() {
       seaSplashRef.current.scale.set(s, s, 1);
       seaSplashRef.current.rotation.z -= 0.005;
     }
+    if (eastSplashRef.current) {
+      const s = 1.0 + Math.sin(t * 3.2 + 1.0) * 0.12;
+      eastSplashRef.current.scale.set(s, s, 1);
+    }
     if (seaMistRef.current) {
       seaMistRef.current.rotation.y += 0.003;
       seaMistRef.current.material.opacity = 0.24 + Math.sin(t * 1.8) * 0.06;
@@ -109,58 +116,155 @@ function MountainWaterfall() {
   });
 
   return (
-    <group position={[-24, 78, -48]}>
-      {/* Upper Source Spring Basin carved into Olympus cliff */}
-      <mesh position={[0, 0, 0]} castShadow receiveShadow>
-        <boxGeometry args={[6.5, 2.4, 5.0]} />
-        <meshStandardMaterial color="#222C32" roughness={0.92} />
-      </mesh>
-
-      {/* Sheer Plunge Column (Drops 78m down to sea surface Y=0) */}
-      <mesh
-        ref={waterFlowRef}
-        position={[0, -39, 3.0]}
-        rotation={[0.04, 0, 0.02]}
-        castShadow
-      >
-        <cylinderGeometry args={[1.6, 4.2, 78, 16, 4, true]} />
-        <meshStandardMaterial
-          color="#EAF2F6"
-          roughness={0.18}
-          metalness={0.2}
-          transparent
-          opacity={0.82}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-
-      {/* Ocean Impact Zone at Sea Level (World Y=0, X=-24, Z=-42) */}
-      <group position={[0, -78, 6.0]}>
-        {/* Radial Impact Froth Ring */}
-        <mesh ref={seaSplashRef} position={[0, 0.35, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[3.5, 16.0, 32]} />
-          <meshBasicMaterial
-            color="#F0F8FF"
+    <group>
+      {/* --- A. MAIN CASCADE SYSTEM (West / Southwest Face) --- */}
+      
+      {/* Tier 1: Upper Summit Terrace Cascade (Y=92 to Y=70) */}
+      <group position={[-10, 88, -62]}>
+        {/* Source spring in terrace masonry */}
+        <mesh position={[0, 2, 0]} castShadow receiveShadow>
+          <boxGeometry args={[4.8, 1.6, 3.2]} />
+          <meshStandardMaterial color="#243038" roughness={0.88} />
+        </mesh>
+        {/* Upper chute cascading down to mid shelf */}
+        <mesh
+          ref={upperFlowRef}
+          position={[-3.5, -9, 4.0]}
+          rotation={[0.32, -0.22, 0.15]}
+          castShadow
+        >
+          <cylinderGeometry args={[1.2, 2.2, 20, 12, 2, true]} />
+          <meshStandardMaterial
+            color="#EDF5F8"
+            roughness={0.15}
+            metalness={0.15}
             transparent
-            opacity={0.42}
+            opacity={0.85}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+      </group>
+
+      {/* Tier 2: Mid-Level Carved Rock Catch-Basin */}
+      <group position={[-18, 70, -52]}>
+        <mesh position={[0, 0, 0]} castShadow receiveShadow>
+          <cylinderGeometry args={[5.2, 6.4, 2.8, 16]} />
+          <meshStandardMaterial color="#1C262C" roughness={0.92} />
+        </mesh>
+        {/* Basin water surface */}
+        <mesh position={[0, 1.2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[4.8, 16]} />
+          <meshStandardMaterial color="#DDEAF0" roughness={0.12} metalness={0.4} />
+        </mesh>
+      </group>
+
+      {/* Tier 3: Grand Sheer Plunge (From mid-basin Y=70 down to Aegean Sea Y=0) */}
+      <group position={[-20, 70, -48]}>
+        <mesh
+          ref={mainFlowRef}
+          position={[-2.5, -35, 3.0]}
+          rotation={[0.04, 0, 0.02]}
+          castShadow
+        >
+          <cylinderGeometry args={[2.0, 4.8, 70, 16, 4, true]} />
+          <meshStandardMaterial
+            color="#EAF2F6"
+            roughness={0.16}
+            metalness={0.2}
+            transparent
+            opacity={0.82}
             side={THREE.DoubleSide}
           />
         </mesh>
 
-        {/* Billowing Ocean Mist Spray Bank */}
-        <mesh ref={seaMistRef} position={[0, 4.5, 0]}>
-          <sphereGeometry args={[14.0, 16, 12]} />
-          <meshBasicMaterial
-            color="#D8E8F2"
+        {/* Ocean Impact Zone at Sea Level (World Y=0, X=-24, Z=-42) */}
+        <group position={[-4, -70, 6.0]}>
+          {/* Radial Impact Froth Ring */}
+          <mesh ref={seaSplashRef} position={[0, 0.35, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[3.5, 18.0, 32]} />
+            <meshBasicMaterial
+              color="#F0F8FF"
+              transparent
+              opacity={0.46}
+              side={THREE.DoubleSide}
+            />
+          </mesh>
+
+          {/* Billowing Ocean Mist Spray Bank */}
+          <mesh ref={seaMistRef} position={[0, 5.0, 0]}>
+            <sphereGeometry args={[16.0, 16, 12]} />
+            <meshBasicMaterial
+              color="#D8E8F2"
+              transparent
+              opacity={0.25}
+              depthWrite={false}
+              blending={THREE.NormalBlending}
+            />
+          </mesh>
+        </group>
+      </group>
+
+      {/* --- B. SECONDARY CASCADE (East Flank Spurring into Sea) --- */}
+      <group position={[32, 52, -50]}>
+        {/* Rocky gorge source */}
+        <mesh position={[0, 0, 0]} castShadow receiveShadow>
+          <boxGeometry args={[4.2, 2.0, 3.8]} />
+          <meshStandardMaterial color="#262F36" roughness={0.9} />
+        </mesh>
+        {/* Plunging column down to sea */}
+        <mesh
+          ref={eastFlowRef}
+          position={[2.0, -26, 4.5]}
+          rotation={[-0.05, 0, -0.06]}
+          castShadow
+        >
+          <cylinderGeometry args={[1.2, 3.2, 52, 12, 3, true]} />
+          <meshStandardMaterial
+            color="#EAF2F6"
+            roughness={0.18}
+            metalness={0.15}
             transparent
-            opacity={0.25}
-            depthWrite={false}
-            blending={THREE.NormalBlending}
+            opacity={0.78}
+            side={THREE.DoubleSide}
           />
+        </mesh>
+        {/* East Sea Splash Froth */}
+        <mesh
+          ref={eastSplashRef}
+          position={[3.0, -52, 8.0]}
+          rotation={[-Math.PI / 2, 0, 0]}
+        >
+          <ringGeometry args={[2.0, 10.0, 24]} />
+          <meshBasicMaterial color="#E8F4F8" transparent opacity={0.38} side={THREE.DoubleSide} />
         </mesh>
       </group>
     </group>
   );
+}
+
+function generateAltarParticles(count, [px, py, pz]) {
+  const pos = new Float32Array(count * 3);
+  const vel = new Float32Array(count * 3);
+
+  for (let i = 0; i < count; i++) {
+    const s1 = Math.sin(i * 12.9898 + 78.233) * 43758.5453;
+    const r1 = s1 - Math.floor(s1);
+    const s2 = Math.sin((i + 1) * 26.651 + 45.164) * 43758.5453;
+    const r2 = s2 - Math.floor(s2);
+    const s3 = Math.sin((i + 2) * 93.382 + 11.235) * 43758.5453;
+    const r3 = s3 - Math.floor(s3);
+
+    const r = 0.2 + r1 * 2.2;
+    const angle = r2 * Math.PI * 2;
+    pos[i * 3] = px + Math.cos(angle) * r;
+    pos[i * 3 + 1] = py + 2.0 + r3 * 8.0;
+    pos[i * 3 + 2] = pz + Math.sin(angle) * r;
+
+    vel[i * 3] = (r1 - 0.5) * 0.2;
+    vel[i * 3 + 1] = 0.6 + r2 * 1.0;
+    vel[i * 3 + 2] = (r3 - 0.5) * 0.2;
+  }
+  return [pos, vel];
 }
 
 // 3. Localized Sacred Altar Embers at the summit brazier
@@ -168,22 +272,7 @@ function LocalizedAltarEmbers({ count = 35 }) {
   const pointsRef = useRef(null);
 
   const [positions, velocities] = useMemo(() => {
-    const pos = new Float32Array(count * 3);
-    const vel = new Float32Array(count * 3);
-    const [px, py, pz] = OLYMPUS_CONFIG.world.sanctuaryPlatform;
-
-    for (let i = 0; i < count; i++) {
-      const r = 0.2 + Math.random() * 2.2;
-      const angle = Math.random() * Math.PI * 2;
-      pos[i * 3] = px + Math.cos(angle) * r;
-      pos[i * 3 + 1] = py + 2.0 + Math.random() * 8.0;
-      pos[i * 3 + 2] = pz + Math.sin(angle) * r;
-
-      vel[i * 3] = (Math.random() - 0.5) * 0.2;
-      vel[i * 3 + 1] = 0.6 + Math.random() * 1.0;
-      vel[i * 3 + 2] = (Math.random() - 0.5) * 0.2;
-    }
-    return [pos, vel];
+    return generateAltarParticles(count, OLYMPUS_CONFIG.world.sanctuaryPlatform);
   }, [count]);
 
   useFrame((_, delta) => {
@@ -247,8 +336,8 @@ export default function DivineSanctuaryLife() {
         flapSpeed={2.6}
       />
 
-      {/* 2. Physical Mountain Waterfall plunging from Olympus into the Aegean Sea */}
-      <MountainWaterfall />
+      {/* 2. Physical Multi-Tiered Mountain Waterfalls plunging from Olympus into the Aegean Sea */}
+      <TieredMountainWaterfalls />
 
       {/* 3. Subtle Sacred Altar Embers at the summit brazier */}
       <LocalizedAltarEmbers count={35} />

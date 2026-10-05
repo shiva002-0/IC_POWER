@@ -6,8 +6,9 @@ import { createRealisticCloudTexture } from '../../utils/proceduralTextures';
 
 /**
  * Natural Linear Atmospheric Cloud Drift System
- * Replaces the rotating group carousel with linear 3D wind drift
- * along a shared wind vector with altitude wind shear and bounding wrapping.
+ * Consolidated into a small number of large, soft atmospheric cloud masses
+ * moving across a shared linear wind field with altitude-dependent shear.
+ * Avoids individual rotating sprites and repetitive looping.
  */
 export default function CloudLayer() {
   const lowMistRef = useRef([]);
@@ -17,33 +18,33 @@ export default function CloudLayer() {
   const cloudTexture = useMemo(() => createRealisticCloudTexture(256), []);
   const [mx, , mz] = OLYMPUS_CONFIG.world.mountainPosition;
 
-  // 1. Low Sea Mist Masses (Elevation 2 - 12m)
+  // 1. Large Low Sea Mist Banks (Elevation 2 - 14m)
   const lowMist = useMemo(() => {
     const list = [];
-    const count = 30;
+    const count = 10;
     for (let i = 0; i < count; i++) {
-      const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.35;
-      const radius = 60 + Math.random() * 85;
+      const angle = (i / count) * Math.PI * 2 + Math.sin(i * 1.7) * 0.3;
+      const radius = 70 + (i % 3) * 35;
       list.push({
-        pos: [mx + Math.cos(angle) * radius, 2.5 + Math.random() * 8.0, mz + Math.sin(angle) * radius],
-        scale: [48 + Math.random() * 35, 12 + Math.random() * 10, 1],
-        opacity: 0.15 + Math.random() * 0.12,
-        speed: 1.8 + Math.random() * 1.2
+        pos: [mx + Math.cos(angle) * radius, 3.5 + (i % 3) * 3.0, mz + Math.sin(angle) * radius],
+        scale: [95 + (i % 4) * 25, 22 + (i % 3) * 8, 1],
+        opacity: 0.16 + (i % 3) * 0.04,
+        speed: 1.4 + (i % 2) * 0.4
       });
     }
     return list;
   }, [mx, mz]);
 
-  // 2. Mid-Mountain Atmospheric Cloud Masses (Elevation 32 - 58m)
+  // 2. Mid-Mountain Cloud Sea (Elevation 34 - 56m)
   const midClouds = useMemo(() => {
     const list = [];
-    const count = 48;
+    const count = 14;
     const baseAlt = OLYMPUS_CONFIG.world.cloudLayerAltitude;
 
     for (let i = 0; i < count; i++) {
-      const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
-      const radius = 38 + Math.random() * 56;
-      const altOffset = (Math.random() - 0.5) * 22;
+      const angle = (i / count) * Math.PI * 2 + Math.cos(i * 1.4) * 0.35;
+      const radius = 45 + (i % 4) * 22;
+      const altOffset = (i % 5 - 2) * 5;
 
       list.push({
         pos: [
@@ -51,87 +52,88 @@ export default function CloudLayer() {
           baseAlt + altOffset,
           mz + Math.sin(angle) * radius
         ],
-        scale: [42 + Math.random() * 36, 22 + Math.random() * 18, 1],
-        opacity: 0.22 + Math.random() * 0.18,
-        speed: 3.2 + Math.random() * 1.6,
+        scale: [85 + (i % 3) * 30, 36 + (i % 3) * 12, 1],
+        opacity: 0.22 + (i % 3) * 0.05,
+        speed: 2.6 + (i % 3) * 0.6,
         color: '#E8EDF2'
       });
     }
     return list;
   }, [mx, mz]);
 
-  // 3. High-Altitude Cirrus Masses (Elevation 110 - 135m)
+  // 3. High-Altitude Cirrus Masses (Elevation 115 - 140m)
   const highClouds = useMemo(() => {
     const list = [];
-    const count = 18;
+    const count = 6;
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 2;
-      const radius = 85 + Math.random() * 95;
+      const radius = 90 + (i % 3) * 45;
       list.push({
-        pos: [mx + Math.cos(angle) * radius, 115 + Math.random() * 20, mz + Math.sin(angle) * radius],
-        scale: [75 + Math.random() * 55, 24 + Math.random() * 16, 1],
-        opacity: 0.14 + Math.random() * 0.10,
-        speed: 4.8 + Math.random() * 2.0,
+        pos: [mx + Math.cos(angle) * radius, 120 + (i % 3) * 10, mz + Math.sin(angle) * radius],
+        scale: [140 + (i % 2) * 50, 42 + (i % 2) * 16, 1],
+        opacity: 0.14 + (i % 2) * 0.04,
+        speed: 4.2 + (i % 2) * 0.8,
         color: '#F0ECE4'
       });
     }
     return list;
   }, [mx, mz]);
 
-  // Linear wind vector drift with position bounds wrapping
+  // Shared linear wind vector with altitude wind shear
   useFrame((_, delta) => {
-    const windDir = new THREE.Vector2(0.72, 0.69).normalize();
-    const boundRadius = 175;
+    const windX = 0.72;
+    const windZ = 0.69;
+    const boundRadius = 220;
 
-    // 1. Drift Low Mist
+    // 1. Low Sea Mist
     lowMistRef.current.forEach((sprite, i) => {
       if (!sprite) return;
       const data = lowMist[i];
-      sprite.position.x += windDir.x * data.speed * delta;
-      sprite.position.z += windDir.y * data.speed * delta;
+      sprite.position.x += windX * data.speed * delta;
+      sprite.position.z += windZ * data.speed * delta;
 
       const dx = sprite.position.x - mx;
       const dz = sprite.position.z - mz;
       if (dx * dx + dz * dz > boundRadius * boundRadius) {
-        sprite.position.x -= windDir.x * boundRadius * 1.8;
-        sprite.position.z -= windDir.y * boundRadius * 1.8;
+        sprite.position.x -= windX * boundRadius * 1.8;
+        sprite.position.z -= windZ * boundRadius * 1.8;
       }
     });
 
-    // 2. Drift Mid Mountain Clouds
+    // 2. Mid Mountain Clouds
     midCloudsRef.current.forEach((sprite, i) => {
       if (!sprite) return;
       const data = midClouds[i];
-      sprite.position.x += windDir.x * data.speed * delta;
-      sprite.position.z += windDir.y * data.speed * delta;
+      sprite.position.x += windX * data.speed * delta;
+      sprite.position.z += windZ * data.speed * delta;
 
       const dx = sprite.position.x - mx;
       const dz = sprite.position.z - mz;
       if (dx * dx + dz * dz > boundRadius * boundRadius) {
-        sprite.position.x -= windDir.x * boundRadius * 1.8;
-        sprite.position.z -= windDir.y * boundRadius * 1.8;
+        sprite.position.x -= windX * boundRadius * 1.8;
+        sprite.position.z -= windZ * boundRadius * 1.8;
       }
     });
 
-    // 3. Drift High Cirrus
+    // 3. High Cirrus Sweeps
     highCloudsRef.current.forEach((sprite, i) => {
       if (!sprite) return;
       const data = highClouds[i];
-      sprite.position.x += windDir.x * data.speed * delta;
-      sprite.position.z += windDir.y * data.speed * delta;
+      sprite.position.x += windX * data.speed * delta;
+      sprite.position.z += windZ * data.speed * delta;
 
       const dx = sprite.position.x - mx;
       const dz = sprite.position.z - mz;
-      if (dx * dx + dz * dz > (boundRadius + 50) * (boundRadius + 50)) {
-        sprite.position.x -= windDir.x * (boundRadius + 50) * 1.8;
-        sprite.position.z -= windDir.y * (boundRadius + 50) * 1.8;
+      if (dx * dx + dz * dz > (boundRadius + 60) * (boundRadius + 60)) {
+        sprite.position.x -= windX * (boundRadius + 60) * 1.8;
+        sprite.position.z -= windZ * (boundRadius + 60) * 1.8;
       }
     });
   });
 
   return (
     <group>
-      {/* 1. Low Sea Mist */}
+      {/* 1. Low Sea Mist Banks */}
       <group>
         {lowMist.map((c, i) => (
           <sprite
@@ -173,7 +175,7 @@ export default function CloudLayer() {
         ))}
       </group>
 
-      {/* 3. High Cirrus Clouds */}
+      {/* 3. High Cirrus Sweeps */}
       <group>
         {highClouds.map((c, i) => (
           <sprite

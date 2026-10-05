@@ -73,7 +73,7 @@ const skyFragmentShader = `
   }
 `;
 
-export default function Atmosphere() {
+export default function Atmosphere({ shadowMapSize = 2048, castShadow = true }) {
   const skyMeshRef = useRef(null);
   const sunMeshRef = useRef(null);
   const sunFlareTex = useMemo(() => createSunFlareTexture(256), []);
@@ -162,9 +162,9 @@ export default function Atmosphere() {
         position={CELESTIAL_THEME.sun.position}
         color="#FFF1D6"
         intensity={2.4}
-        castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
+        castShadow={castShadow}
+        shadow-mapSize-width={shadowMapSize}
+        shadow-mapSize-height={shadowMapSize}
         shadow-camera-near={15}
         shadow-camera-far={600}
         shadow-camera-left={-160}

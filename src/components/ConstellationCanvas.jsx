@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Star, Compass, Sparkles, BookOpen } from 'lucide-react';
+import { Star, Compass, Sparkles } from 'lucide-react';
 import { soundFX } from '../utils/audio';
 
 // 6 Ancient Greek Mythological Constellations with accurate stellar details & spectral physics
-export const CONSTELLATIONS_DATA = [
+const CONSTELLATIONS_DATA = [
   {
     id: 'orion',
     name: 'ORION',

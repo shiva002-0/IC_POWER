@@ -1,7 +1,6 @@
 import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { OLYMPUS_CONFIG, CELESTIAL_THEME } from '../../config/olympusConfig';
 
 /**
  * JÖRMUNGANDR — THE ANCIENT WORLD SERPENT
@@ -19,8 +18,13 @@ import { OLYMPUS_CONFIG, CELESTIAL_THEME } from '../../config/olympusConfig';
  * - ZERO fantasy ears, ZERO helmet horns, ZERO cartoon fins, ZERO traffic-cone spikes.
  */
 
+const serpentTextureCache = new Map();
+
 // Procedural multi-tier scale texture with keeled dorsal scales and segmented ventral scutes
 function createSerpentSkinTexture(size = 1024) {
+  const cacheKey = `serpent_skin_${size}`;
+  if (serpentTextureCache.has(cacheKey)) return serpentTextureCache.get(cacheKey);
+
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
@@ -121,11 +125,15 @@ function createSerpentSkinTexture(size = 1024) {
   texture.wrapT = THREE.RepeatWrapping;
   texture.repeat.set(1, 16);
   texture.needsUpdate = true;
+  serpentTextureCache.set(cacheKey, texture);
   return texture;
 }
 
 // Procedural micro-relief bump map
 function createSerpentBumpTexture(size = 512) {
+  const cacheKey = `serpent_bump_${size}`;
+  if (serpentTextureCache.has(cacheKey)) return serpentTextureCache.get(cacheKey);
+
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
@@ -184,6 +192,7 @@ function createSerpentBumpTexture(size = 512) {
   texture.wrapT = THREE.RepeatWrapping;
   texture.repeat.set(1, 16);
   texture.needsUpdate = true;
+  serpentTextureCache.set(cacheKey, texture);
   return texture;
 }
 
@@ -196,7 +205,6 @@ function createSerpentCraniumGeometry() {
   const radialSteps = 24;
 
   const positions = [];
-  const normals = [];
   const uvs = [];
   const indices = [];
 
@@ -346,7 +354,7 @@ function createSerpentMandibleGeometry() {
   return geo;
 }
 
-export default function Jormungandr() {
+export default function Jormungandr({ tubularSegments = 220, radialSegments = 22 }) {
   const bodyGroupRef = useRef(null);
   const headGroupRef = useRef(null);
   const jawRef = useRef(null);
@@ -399,30 +407,27 @@ export default function Jormungandr() {
     // 16-waypoint biological spline wrapping around Mount Olympus
     // Clear clearance from mountain rock, natural occlusion behind north face, separate from summit sanctuary
     const waypoints = [
-      new THREE.Vector3(-78, 2, -30),    // 0: Tail emerging from Aegean ocean southwest
-      new THREE.Vector3(-74, 9, -58),    // 1: Sweeping up coastal spurs
-      new THREE.Vector3(-60, 18, -94),   // 2: Diving behind west-north mountain wall (OCCLUDED)
-      new THREE.Vector3(-18, 26, -114),  // 3: Passing behind northern massif cliffs (OCCLUDED)
-      new THREE.Vector3(38, 34, -108),   // 4: Behind northeast couloir (OCCLUDED)
-      new THREE.Vector3(64, 42, -78),    // 5: Emerging from east crags into view
-      new THREE.Vector3(56, 50, -38),    // 6: Crossing front southeast face
-      new THREE.Vector3(14, 58, -32),    // 7: Sweeping across central south face
-      new THREE.Vector3(-34, 66, -42),   // 8: Crossing southwest face
-      new THREE.Vector3(-48, 74, -72),   // 9: Passing behind west shoulder (OCCLUDED)
-      new THREE.Vector3(-32, 82, -100),  // 10: Behind northwest crags (OCCLUDED)
-      new THREE.Vector3(10, 89, -104),   // 11: Behind northern summit ridge (OCCLUDED)
-      new THREE.Vector3(38, 95, -86),    // 12: Rising on northeast flank
-      new THREE.Vector3(42, 101, -62),   // 13: Towering muscular neck arching above clouds
-      new THREE.Vector3(32, 103, -48),   // 14: Neck curving gracefully inward
-      new THREE.Vector3(22, 100, -56)    // 15: Skull overlooking summit sanctuary
+      new THREE.Vector3(68, 2, -35),     // 0: Tail emerging from Aegean ocean southeast
+      new THREE.Vector3(72, 10, -66),    // 1: Sweeping along eastern coastal sea spurs
+      new THREE.Vector3(56, 19, -100),   // 2: Diving behind northeast cliff wall (OCCLUDED)
+      new THREE.Vector3(2, 28, -116),    // 3: Passing behind northern massif cliffs (OCCLUDED)
+      new THREE.Vector3(-48, 36, -104),  // 4: Behind northwest couloir (OCCLUDED)
+      new THREE.Vector3(-68, 44, -72),   // 5: Emerging from west crags into front view
+      new THREE.Vector3(-58, 51, -36),   // 6: Sweeping across front southwest face
+      new THREE.Vector3(-14, 58, -30),   // 7: Crossing central south face below waterfalls
+      new THREE.Vector3(38, 66, -38),    // 8: Curving across southeast mid-terrace
+      new THREE.Vector3(56, 73, -68),    // 9: Passing behind east shoulder (OCCLUDED)
+      new THREE.Vector3(34, 82, -102),   // 10: Behind northern upper ridge (OCCLUDED)
+      new THREE.Vector3(-18, 88, -104),  // 11: Behind northwest summit arête (OCCLUDED)
+      new THREE.Vector3(-46, 94, -78),   // 12: Emerging on the northwest shoulder
+      new THREE.Vector3(-52, 104, -58),  // 13: Towering muscular neck arching high into the sky on the LEFT
+      new THREE.Vector3(-42, 114, -46),  // 14: Graceful apex of the neck arch
+      new THREE.Vector3(-26, 104, -54)   // 15: Colossal serpent skull overlooking summit sanctuary
     ];
 
     const curve = new THREE.CatmullRomCurve3(waypoints, false, 'centripetal', 0.5);
 
     // Build Bishop Rotation-Minimizing Frame along curve
-    const tubularSegments = 260;
-    const radialSegments = 24;
-
     const frames = curve.computeFrenetFrames(tubularSegments, false);
 
     const positions = [];
@@ -527,10 +532,10 @@ export default function Jormungandr() {
       headTransform: {
         pos: [lastPt.x, lastPt.y, lastPt.z],
         rotY: Math.atan2(toSanctuary.x, toSanctuary.z),
-        rotX: -toSanctuary.y * 0.4
+        rotX: -Math.asin(toSanctuary.y) * 0.75
       }
     };
-  }, []);
+  }, [tubularSegments, radialSegments]);
 
   // Macro scale plate geometry (Carinated, overlapping curved anatomical scute)
   const scuteGeo = useMemo(() => {

@@ -58,11 +58,16 @@ function createNoiseGenerator() {
 
 const noiseGen = createNoiseGenerator();
 
+// Global texture cache to prevent duplicate canvas allocations and GPU memory bloat
+const textureCache = new Map();
+
 /**
  * 1. Realistic Water Normal Map (512x512)
  * Creates multi-octave water surface ripples with seamless tiling
  */
 export function createWaterNormalTexture(size = 512) {
+  const cacheKey = `water_normal_${size}`;
+  if (textureCache.has(cacheKey)) return textureCache.get(cacheKey);
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
@@ -118,6 +123,7 @@ export function createWaterNormalTexture(size = 512) {
   texture.magFilter = THREE.LinearFilter;
   texture.generateMipmaps = true;
   texture.needsUpdate = true;
+  textureCache.set(cacheKey, texture);
   return texture;
 }
 
@@ -126,6 +132,8 @@ export function createWaterNormalTexture(size = 512) {
  * Stratified dark slate with warm mineral crevices and roughness
  */
 export function createRockTexture(size = 512) {
+  const cacheKey = `rock_${size}`;
+  if (textureCache.has(cacheKey)) return textureCache.get(cacheKey);
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
@@ -167,6 +175,7 @@ export function createRockTexture(size = 512) {
   texture.wrapT = THREE.RepeatWrapping;
   texture.generateMipmaps = true;
   texture.needsUpdate = true;
+  textureCache.set(cacheKey, texture);
   return texture;
 }
 
@@ -175,6 +184,8 @@ export function createRockTexture(size = 512) {
  * Subtle grey and golden vein lines for the temple sanctuary, columns, and thrones
  */
 export function createMarbleTexture(size = 512) {
+  const cacheKey = `marble_${size}`;
+  if (textureCache.has(cacheKey)) return textureCache.get(cacheKey);
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
@@ -219,6 +230,7 @@ export function createMarbleTexture(size = 512) {
   texture.wrapT = THREE.RepeatWrapping;
   texture.generateMipmaps = true;
   texture.needsUpdate = true;
+  textureCache.set(cacheKey, texture);
   return texture;
 }
 
@@ -227,6 +239,9 @@ export function createMarbleTexture(size = 512) {
  * Multi-layer puffy cumulus texture with Gaussian falloff
  */
 export function createRealisticCloudTexture(size = 256) {
+  const cacheKey = `cloud_${size}`;
+  if (textureCache.has(cacheKey)) return textureCache.get(cacheKey);
+
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
@@ -268,6 +283,7 @@ export function createRealisticCloudTexture(size = 256) {
   texture.minFilter = THREE.LinearMipmapLinearFilter;
   texture.generateMipmaps = true;
   texture.needsUpdate = true;
+  textureCache.set(cacheKey, texture);
   return texture;
 }
 
@@ -275,6 +291,9 @@ export function createRealisticCloudTexture(size = 256) {
  * 5. Sun Flare & Radiant Corona Texture (256x256)
  */
 export function createSunFlareTexture(size = 256) {
+  const cacheKey = `sunflare_${size}`;
+  if (textureCache.has(cacheKey)) return textureCache.get(cacheKey);
+
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
@@ -310,6 +329,7 @@ export function createSunFlareTexture(size = 256) {
   texture.minFilter = THREE.LinearFilter;
   texture.magFilter = THREE.LinearFilter;
   texture.needsUpdate = true;
+  textureCache.set(cacheKey, texture);
   return texture;
 }
 
@@ -350,6 +370,7 @@ export function createGoldLeafTexture(size = 256) {
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
   texture.needsUpdate = true;
+  textureCache.set(cacheKey, texture);
   return texture;
 }
 
@@ -357,6 +378,9 @@ export function createGoldLeafTexture(size = 256) {
  * 7. Authentic Greek Key (Meander) Frieze Texture (512x128)
  */
 export function createGreekMeanderTexture(width = 512, height = 128) {
+  const cacheKey = `meander_${width}_${height}`;
+  if (textureCache.has(cacheKey)) return textureCache.get(cacheKey);
+
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
@@ -409,6 +433,7 @@ export function createGreekMeanderTexture(width = 512, height = 128) {
   texture.wrapT = THREE.ClampToEdgeWrapping;
   texture.repeat.set(4, 1);
   texture.needsUpdate = true;
+  textureCache.set(cacheKey, texture);
   return texture;
 }
 
@@ -416,6 +441,9 @@ export function createGreekMeanderTexture(width = 512, height = 128) {
  * 8. Cascading Waterfall Texture (256x512)
  */
 export function createWaterfallTexture(width = 256, height = 512) {
+  const cacheKey = `waterfall_${width}_${height}`;
+  if (textureCache.has(cacheKey)) return textureCache.get(cacheKey);
+
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
@@ -446,6 +474,7 @@ export function createWaterfallTexture(width = 256, height = 512) {
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
   texture.needsUpdate = true;
+  textureCache.set(cacheKey, texture);
   return texture;
 }
 

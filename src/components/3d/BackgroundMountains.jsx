@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
-import { CELESTIAL_THEME } from '../../config/olympusConfig';
 
 /**
  * Continuous 360-degree geological horizon landscape

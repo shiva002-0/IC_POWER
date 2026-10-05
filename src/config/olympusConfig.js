@@ -3,15 +3,23 @@
  * Shared single-source-of-truth constants used across Atmosphere, MountOlympus, Ocean, and Controllers.
  */
 
+export const VIEWPOINTS = {
+  FLYTHROUGH: 'flythrough',
+  SANCTUARY: 'sanctuary',
+  SERPENT: 'serpent',
+  OCEAN: 'ocean',
+  PANORAMA: 'panorama'
+};
+
 export const CELESTIAL_THEME = {
-  // Shared Sun Parameters
+  // Shared Sun Parameters - low-angle dawn sun on the right horizon (matching reference composition)
   sun: {
-    position: [40, 120, -120],
+    position: [130, 48, -75],
     color: "#FFF1D6",           // Pure warm dawn solar illumination
     colorHex: 0xFFF1D6,
     haloColor: "#D97706",       // Restrained amber halo
     haloColorHex: 0xD97706,
-    intensity: 2.4,
+    intensity: 2.6,
   },
 
   // Shared Sky & Atmospheric Fog
@@ -20,7 +28,7 @@ export const CELESTIAL_THEME = {
     horizonColor: "#221730",    // Muted dawn slate-violet
     dawnAmber: "#C87B28",       // Restrained horizon amber
     fogColor: "#09121E",
-    fogDensity: 0.0022          // Soft distance haze allowing depth staging
+    fogDensity: 0.0020          // Soft distance haze allowing atmospheric depth staging
   },
 
   // Ocean Colors (Deep Aegean blue-green, zero electric cyan)
@@ -32,16 +40,16 @@ export const CELESTIAL_THEME = {
 };
 
 export const OLYMPUS_CONFIG = {
-  title: "ASCENT TO OLYMPUS",
-  subtitle: "REALM OF THE PANTHEON",
-  author: "Olympian Architect",
+  title: "OLYMPUS",
+  subtitle: "A STUDY IN SCALE, MYTH, AND MACHINE",
+  author: "Pavan • Creative Technologist & 3D Systems Architect",
 
   loadingQuotes: [
-    "Summoning the eternal mists of Mount Olympus...",
-    "Harmonizing celestial spheres and star dust...",
-    "Forging the golden thrones upon the highest summit...",
-    "Channelling the divine fire of Prometheus...",
-    "Opening the gilded gates of the Pantheon..."
+    "Establishing WebGL render pipeline & adaptive DPR...",
+    "Synthesizing 4-train Gerstner oceanic wave spectrum...",
+    "Sculpting Mount Olympus geological massif and couloirs...",
+    "Simulating Jörmungandr biological Bishop RMF spine...",
+    "Integrating summit sanctuary colonnades and editorial portfolio..."
   ],
 
   // Camera Flythrough Path (CatmullRomCurve3 coordinates)
@@ -63,7 +71,7 @@ export const OLYMPUS_CONFIG = {
       [0, 16.0, 60],    // 1. t=0.0: Looking toward distant mountain silhouette
       [0, 32.0, 20],    // 2. t=0.2: Looking up at glowing cloud mist
       [0, 62.0, -15],   // 3. t=0.4: Tracking the illuminated cliff ridge
-      [0, 88.0, -45],   // 4. t=0.6: Framing the golden summit beacon
+      [0, 88.0, -45],   // 4. t=0.6: Framing the summit colonnade
       [0, 95.0, -66],   // 5. t=0.8: Focusing onto the throne sanctuary
       [0, 95.5, -68]    // 6. t=1.0: Level lookAt centered onto the semi-circle of thrones
     ]
@@ -80,37 +88,40 @@ export const OLYMPUS_CONFIG = {
     beaconLightPosition: [0, 95, -68]
   },
 
-  // Peak Thrones Configuration (N=5 interactive navigation destinations)
+  // Peak Thrones Configuration (N=5 interactive navigation destinations mapped to portfolio sections)
   thrones: [
     {
       id: "zeus",
       god: "Zeus",
       title: "The Sovereign",
-      section: "About Me",
+      section: "About & Philosophy",
+      category: "about",
       route: "/about",
       color: "#FDE047",
       glowColor: "#E5A93C",
       position: [-10.5, 94.5, -64],
       rotation: [0, 0.42, 0],
-      description: "Architect of scalable systems, master of vision & divine craft."
+      description: "Engineering scalable web applications with visual presence."
     },
     {
       id: "apollo",
       god: "Apollo",
       title: "God of Light & Arts",
-      section: "Creations & Projects",
+      section: "Featured Projects",
+      category: "projects",
       route: "/projects",
       color: "#F59E0B",
       glowColor: "#D97706",
       position: [-5.5, 94.5, -68],
       rotation: [0, 0.22, 0],
-      description: "Illuminating digital experiences with cutting-edge 3D & interactive design."
+      description: "Real-time 3D, WebGL shaders & interactive digital experiences."
     },
     {
       id: "athena",
       god: "Athena",
       title: "Goddess of Wisdom",
-      section: "Skills & Mastery",
+      section: "Technical Expertise",
+      category: "skills",
       route: "/skills",
       color: "#38BDF8",
       glowColor: "#0284C7",
@@ -122,25 +133,27 @@ export const OLYMPUS_CONFIG = {
       id: "hermes",
       god: "Hermes",
       title: "The Swift Messenger",
-      section: "Reach the Oracle",
+      section: "Direct Inquiries",
+      category: "contact",
       route: "/contact",
       color: "#34D399",
       glowColor: "#059669",
       position: [5.5, 94.5, -68],
       rotation: [0, -0.22, 0],
-      description: "Send swift digital dispatches across the mortal & immortal realms."
+      description: "Direct dispatches for high-impact creative engineering collaborations."
     },
     {
       id: "poseidon",
       god: "Poseidon",
       title: "Lord of the Depths",
-      section: "Archive & Experiments",
+      section: "Research Archive",
+      category: "projects",
       route: "/archive",
       color: "#60A5FA",
       glowColor: "#2563EB",
       position: [10.5, 94.5, -64],
       rotation: [0, -0.42, 0],
-      description: "Navigating deep experiments, shaders, and uncharted code."
+      description: "Gerstner wave synthesis, Bishop RMF splines & GPU compute tests."
     }
   ]
 };

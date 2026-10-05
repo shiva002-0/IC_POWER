@@ -9,7 +9,7 @@ import React, { useEffect, useRef } from 'react';
  * - Multi-layered volumetric night clouds with golden rims and moonlight diffusion
  * - Upward-floating golden stardust embers and cosmic particles with mouse parallax
  */
-export default function CloudCanvas({ containerRef }) {
+export default function CloudCanvas({ _containerRef }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {

@@ -181,7 +181,7 @@ const oceanFragmentShader = `
   }
 `;
 
-export default function Ocean() {
+export default function Ocean({ segments = 160 }) {
   const meshRef = useRef(null);
   const normalMap = useMemo(() => createWaterNormalTexture(512), []);
 
@@ -211,7 +211,7 @@ export default function Ocean() {
       rotation={[-Math.PI / 2, 0, 0]}
       position={[0, OLYMPUS_CONFIG.world.waterLevel, 0]}
     >
-      <planeGeometry args={[1400, 1400, 220, 220]} />
+      <planeGeometry args={[1400, 1400, segments, segments]} />
       <shaderMaterial
         vertexShader={oceanVertexShader}
         fragmentShader={oceanFragmentShader}

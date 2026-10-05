@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { Html } from '@react-three/drei';
-import * as THREE from 'three';
 import { OLYMPUS_CONFIG } from '../../config/olympusConfig';
 import { soundFX } from '../../utils/audio';
 import { createMarbleTexture } from '../../utils/proceduralTextures';
@@ -94,7 +93,7 @@ function DeityMedallion({ god, hovered }) {
 }
 
 // Classical Weathered Pentelic Marble Throne
-function SculptedThroneItem({ throne, isFlythroughComplete }) {
+function SculptedThroneItem({ throne, isFlythroughComplete, onSelectThrone }) {
   const [hovered, setHovered] = useState(false);
   const marbleTexture = useMemo(() => createMarbleTexture(256), []);
 
@@ -134,7 +133,7 @@ function SculptedThroneItem({ throne, isFlythroughComplete }) {
           e.stopPropagation();
           if (isFlythroughComplete) {
             soundFX.playEnterChord();
-            console.log(`Visited domain: ${throne.god}`);
+            if (onSelectThrone) onSelectThrone(throne);
           }
         }}
         className="cursor-pointer"
@@ -236,6 +235,9 @@ function SculptedThroneItem({ throne, isFlythroughComplete }) {
             <p className="font-outfit text-[11px] text-slate-400 mt-1 max-w-[190px] text-center whitespace-normal">
               {throne.description}
             </p>
+            <span className="mt-2 text-[10px] text-amber-400/90 font-cinzel tracking-wider uppercase">
+              Click to view section ➔
+            </span>
           </div>
         </Html>
       )}
@@ -243,7 +245,7 @@ function SculptedThroneItem({ throne, isFlythroughComplete }) {
   );
 }
 
-export default function ThronePlaceholders({ isFlythroughComplete }) {
+export default function ThronePlaceholders({ isFlythroughComplete, onSelectThrone }) {
   return (
     <group>
       {OLYMPUS_CONFIG.thrones.map((throne) => (
@@ -251,6 +253,7 @@ export default function ThronePlaceholders({ isFlythroughComplete }) {
           key={throne.id}
           throne={throne}
           isFlythroughComplete={isFlythroughComplete}
+          onSelectThrone={onSelectThrone}
         />
       ))}
     </group>
