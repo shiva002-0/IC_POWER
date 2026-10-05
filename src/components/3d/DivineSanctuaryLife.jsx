@@ -36,24 +36,23 @@ function Eagle({ radius, speed, altitude, initialAngle, flapSpeed }) {
 
   return (
     <group ref={groupRef} scale={[0.85, 0.85, 0.85]}>
-      {/* Eagle Body */}
+      {/* Eagle Body (Natural dark brown/umber raptor plumage) */}
       <mesh castShadow>
-        <coneGeometry args={[0.35, 2.2, 5]} />
+        <coneGeometry args={[0.35, 2.2, 6]} />
         <meshStandardMaterial
-          color="#3E2723"
-          roughness={0.6}
-          emissive="#78350F"
-          emissiveIntensity={0.2}
+          color="#261A12"
+          roughness={0.85}
+          metalness={0.08}
         />
       </mesh>
 
-      {/* Golden Head & Beak */}
+      {/* Golden Mantle & Head */}
       <mesh position={[0, 1.1, 0.2]}>
         <sphereGeometry args={[0.26, 8, 8]} />
         <meshStandardMaterial
-          color="#FEF08A"
-          emissive="#F59E0B"
-          emissiveIntensity={0.6}
+          color="#785018"
+          roughness={0.7}
+          metalness={0.15}
         />
       </mesh>
 
@@ -62,9 +61,9 @@ function Eagle({ radius, speed, altitude, initialAngle, flapSpeed }) {
         <mesh position={[-1.6, 0, 0]} rotation={[0, 0, 0.1]}>
           <boxGeometry args={[3.2, 0.08, 0.9]} />
           <meshStandardMaterial
-            color="#2E1C12"
-            emissive="#B45309"
-            emissiveIntensity={0.15}
+            color="#221710"
+            roughness={0.88}
+            metalness={0.05}
           />
         </mesh>
       </group>
@@ -74,9 +73,9 @@ function Eagle({ radius, speed, altitude, initialAngle, flapSpeed }) {
         <mesh position={[1.6, 0, 0]} rotation={[0, 0, -0.1]}>
           <boxGeometry args={[3.2, 0.08, 0.9]} />
           <meshStandardMaterial
-            color="#2E1C12"
-            emissive="#B45309"
-            emissiveIntensity={0.15}
+            color="#221710"
+            roughness={0.88}
+            metalness={0.05}
           />
         </mesh>
       </group>
@@ -84,57 +83,88 @@ function Eagle({ radius, speed, altitude, initialAngle, flapSpeed }) {
       {/* Golden Tail Feathers */}
       <mesh position={[0, -1.2, 0]} rotation={[-0.2, 0, 0]}>
         <boxGeometry args={[0.9, 0.06, 0.7]} />
-        <meshStandardMaterial color="#FEF08A" emissive="#F59E0B" emissiveIntensity={0.4} />
+        <meshStandardMaterial color="#6B4614" roughness={0.75} />
       </mesh>
     </group>
   );
 }
 
-// 2. Divine Cascading Waterfalls from Floating Celestial Islands
-function CelestialWaterfall({ startPos, dropHeight = 35 }) {
-  const meshRef = useRef(null);
+// 2. Physical Mountain Waterfall plunging sheer from Mount Olympus into the Aegean Sea
+function MountainWaterfall() {
+  const waterFlowRef = useRef(null);
+  const seaSplashRef = useRef(null);
+  const seaMistRef = useRef(null);
 
-  useFrame((_, delta) => {
-    if (meshRef.current && meshRef.current.material) {
-      // Texture or UV animation simulation via offset
-      meshRef.current.material.opacity = 0.65 + Math.sin(Date.now() * 0.005) * 0.12;
+  useFrame(({ clock }) => {
+    const t = clock.elapsedTime;
+    if (seaSplashRef.current) {
+      const s = 1.0 + Math.sin(t * 3.5) * 0.12;
+      seaSplashRef.current.scale.set(s, s, 1);
+      seaSplashRef.current.rotation.z -= 0.005;
+    }
+    if (seaMistRef.current) {
+      seaMistRef.current.rotation.y += 0.003;
+      seaMistRef.current.material.opacity = 0.24 + Math.sin(t * 1.8) * 0.06;
     }
   });
 
   return (
-    <group position={startPos}>
-      {/* Waterfall stream */}
-      <mesh ref={meshRef} position={[0, -dropHeight / 2, 0]}>
-        <cylinderGeometry args={[0.28, 0.9, dropHeight, 12, 1, true]} />
+    <group position={[-24, 78, -48]}>
+      {/* Upper Source Spring Basin carved into Olympus cliff */}
+      <mesh position={[0, 0, 0]} castShadow receiveShadow>
+        <boxGeometry args={[6.5, 2.4, 5.0]} />
+        <meshStandardMaterial color="#222C32" roughness={0.92} />
+      </mesh>
+
+      {/* Sheer Plunge Column (Drops 78m down to sea surface Y=0) */}
+      <mesh
+        ref={waterFlowRef}
+        position={[0, -39, 3.0]}
+        rotation={[0.04, 0, 0.02]}
+        castShadow
+      >
+        <cylinderGeometry args={[1.6, 4.2, 78, 16, 4, true]} />
         <meshStandardMaterial
-          color="#67E8F9"
-          emissive="#06B6D4"
-          emissiveIntensity={0.7}
+          color="#EAF2F6"
+          roughness={0.18}
+          metalness={0.2}
           transparent
-          opacity={0.75}
-          roughness={0.1}
-          metalness={0.5}
+          opacity={0.82}
           side={THREE.DoubleSide}
         />
       </mesh>
 
-      {/* Base mist splash */}
-      <mesh position={[0, -dropHeight, 0]}>
-        <sphereGeometry args={[1.8, 12, 8]} />
-        <meshStandardMaterial
-          color="#E0F2FE"
-          emissive="#38BDF8"
-          emissiveIntensity={0.5}
-          transparent
-          opacity={0.35}
-        />
-      </mesh>
+      {/* Ocean Impact Zone at Sea Level (World Y=0, X=-24, Z=-42) */}
+      <group position={[0, -78, 6.0]}>
+        {/* Radial Impact Froth Ring */}
+        <mesh ref={seaSplashRef} position={[0, 0.35, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[3.5, 16.0, 32]} />
+          <meshBasicMaterial
+            color="#F0F8FF"
+            transparent
+            opacity={0.42}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+
+        {/* Billowing Ocean Mist Spray Bank */}
+        <mesh ref={seaMistRef} position={[0, 4.5, 0]}>
+          <sphereGeometry args={[14.0, 16, 12]} />
+          <meshBasicMaterial
+            color="#D8E8F2"
+            transparent
+            opacity={0.25}
+            depthWrite={false}
+            blending={THREE.NormalBlending}
+          />
+        </mesh>
+      </group>
     </group>
   );
 }
 
-// 3. Floating Divine Embers & Stardust Particles
-function GoldenEmbers({ count = 120 }) {
+// 3. Localized Sacred Altar Embers at the summit brazier
+function LocalizedAltarEmbers({ count = 35 }) {
   const pointsRef = useRef(null);
 
   const [positions, velocities] = useMemo(() => {
@@ -143,16 +173,15 @@ function GoldenEmbers({ count = 120 }) {
     const [px, py, pz] = OLYMPUS_CONFIG.world.sanctuaryPlatform;
 
     for (let i = 0; i < count; i++) {
-      // Cylindrical distribution around summit sanctuary
-      const r = 3 + Math.random() * 22;
+      const r = 0.2 + Math.random() * 2.2;
       const angle = Math.random() * Math.PI * 2;
       pos[i * 3] = px + Math.cos(angle) * r;
-      pos[i * 3 + 1] = py - 2 + Math.random() * 24;
+      pos[i * 3 + 1] = py + 2.0 + Math.random() * 8.0;
       pos[i * 3 + 2] = pz + Math.sin(angle) * r;
 
-      vel[i * 3] = (Math.random() - 0.5) * 0.4;
-      vel[i * 3 + 1] = 0.6 + Math.random() * 1.2; // Float upwards
-      vel[i * 3 + 2] = (Math.random() - 0.5) * 0.4;
+      vel[i * 3] = (Math.random() - 0.5) * 0.2;
+      vel[i * 3 + 1] = 0.6 + Math.random() * 1.0;
+      vel[i * 3 + 2] = (Math.random() - 0.5) * 0.2;
     }
     return [pos, vel];
   }, [count]);
@@ -168,9 +197,8 @@ function GoldenEmbers({ count = 120 }) {
       arr[i * 3 + 1] += velocities[i * 3 + 1] * delta;
       arr[i * 3 + 2] += velocities[i * 3 + 2] * delta;
 
-      // Loop back if floated too high
-      if (arr[i * 3 + 1] > py + 26) {
-        arr[i * 3 + 1] = py - 2;
+      if (arr[i * 3 + 1] > py + 12) {
+        arr[i * 3 + 1] = py + 2.0;
       }
     }
     posAttr.needsUpdate = true;
@@ -179,16 +207,13 @@ function GoldenEmbers({ count = 120 }) {
   return (
     <points ref={pointsRef}>
       <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          args={[positions, 3]}
-        />
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
       <pointsMaterial
-        size={0.65}
+        size={0.45}
         color={CELESTIAL_THEME.sun.color}
         transparent
-        opacity={0.8}
+        opacity={0.65}
         blending={THREE.AdditiveBlending}
         depthWrite={false}
       />
@@ -199,35 +224,34 @@ function GoldenEmbers({ count = 120 }) {
 export default function DivineSanctuaryLife() {
   return (
     <group>
-      {/* 1. Soaring Golden Eagles (Aetos Dios) in majestic thermal circles */}
+      {/* 1. Soaring Golden Eagles (Aetos Dios) in wide mountain thermals */}
       <Eagle
         radius={48}
-        speed={0.35}
+        speed={0.28}
         altitude={98}
         initialAngle={0}
-        flapSpeed={2.8}
+        flapSpeed={2.4}
       />
       <Eagle
-        radius={72}
-        speed={0.24}
-        altitude={115}
+        radius={75}
+        speed={0.18}
+        altitude={116}
         initialAngle={Math.PI * 0.8}
-        flapSpeed={2.2}
+        flapSpeed={1.9}
       />
       <Eagle
-        radius={36}
-        speed={0.42}
-        altitude={86}
+        radius={38}
+        speed={0.32}
+        altitude={88}
         initialAngle={Math.PI * 1.5}
-        flapSpeed={3.2}
+        flapSpeed={2.6}
       />
 
-      {/* 2. Celestial Cascading Waterfalls */}
-      <CelestialWaterfall startPos={[-28, 71, -50]} dropHeight={28} />
-      <CelestialWaterfall startPos={[30, 74, -55]} dropHeight={30} />
+      {/* 2. Physical Mountain Waterfall plunging from Olympus into the Aegean Sea */}
+      <MountainWaterfall />
 
-      {/* 3. Golden Divine Embers drifting upward at the summit */}
-      <GoldenEmbers count={140} />
+      {/* 3. Subtle Sacred Altar Embers at the summit brazier */}
+      <LocalizedAltarEmbers count={35} />
     </group>
   );
 }

@@ -4,32 +4,30 @@
  */
 
 export const CELESTIAL_THEME = {
-  // Shared Sun & Light Shaft Parameters (shared by Atmosphere.jsx and MountOlympus.jsx)
+  // Shared Sun Parameters
   sun: {
     position: [40, 120, -120],
-    color: "#FDE047",           // Primary golden sun
-    colorHex: 0xFDE047,
-    haloColor: "#F59E0B",       // Warm amber halo
-    haloColorHex: 0xF59E0B,
+    color: "#FFF1D6",           // Pure warm dawn solar illumination
+    colorHex: 0xFFF1D6,
+    haloColor: "#D97706",       // Restrained amber halo
+    haloColorHex: 0xD97706,
     intensity: 2.4,
-    shaftOpacity: 0.38,
-    shaftAuraOpacity: 0.16,
   },
 
-  // Shared Sky & Fog
+  // Shared Sky & Atmospheric Fog
   sky: {
-    topColor: "#030612",        // Deep celestial midnight
-    horizonColor: "#35154E",    // Mythological dawn violet/magenta
-    dawnAmber: "#D97706",       // Radiant horizon gold
-    fogColor: "#0A1324",
-    fogDensity: 0.0042          // Balanced fog to reveal horizon gradient
+    topColor: "#020716",        // Deep celestial midnight
+    horizonColor: "#221730",    // Muted dawn slate-violet
+    dawnAmber: "#C87B28",       // Restrained horizon amber
+    fogColor: "#09121E",
+    fogDensity: 0.0022          // Soft distance haze allowing depth staging
   },
 
-  // Ocean Colors
+  // Ocean Colors (Deep Aegean blue-green, zero electric cyan)
   ocean: {
-    deepColor: "#051324",
-    shallowColor: "#0C5A72",
-    specularColor: "#FFEAA7"
+    deepColor: "#021224",
+    shallowColor: "#0A2838",
+    specularColor: "#E2D9C8"
   }
 };
 

@@ -1,122 +1,130 @@
 import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { OLYMPUS_CONFIG } from '../../config/olympusConfig';
+import { OLYMPUS_CONFIG, CELESTIAL_THEME } from '../../config/olympusConfig';
 
 /**
- * JÖRMUNGANDR - THE OLYMPIAN WORLD SERPENT
- * Faithfully sculpted and textured based on the God of War reference image:
- * - Colossal head prominently raised above the clouds and summit plateau (visible from approach and summit)
- * - Broad ancient reptilian skull with rounded snout and flared nostril ridges
- * - Curving fan-like ear crests / lateral horn fins behind the eyes
- * - Heavy blanket of pure white mountain snow and frost capping the cranium and bridge of the snout
- * - Shaggy, dark fibrous moss/lichen beard hanging beneath the lower jaw and throat
- * - Glowing piercing golden-amber eyes with deep brow ridges and slit pupils
- * - Prehistoric ivory fangs on upper and lower jaws
- * - Pale greenish-grey segmented ventral (belly) plates with dark transverse grooves
- * - Heavy diamond/rocky slate-teal scales on the dorsal side
- * - Organic spiral wrap around Mount Olympus rising from the Aegean Sea to the summit shoulder
- * - Nostril frost vapor breath particles
+ * JÖRMUNGANDR — THE ANCIENT WORLD SERPENT
+ * 
+ * Physically grounded biological reconstruction:
+ * - Coils around Mount Olympus with true spatial separation and mountain occlusion.
+ * - Non-uniform muscular cross-section (Bishop rotation-minimizing frame with keeled dorsal ridge and flat belly).
+ * - Three scale hierarchy levels:
+ *   1. MACRO: Large overlapping carinated scutes along dorsal spine and cranial crest.
+ *   2. MESO: Physical diamond-tessellation displacement across lateral flanks.
+ *   3. MICRO: High-frequency mineral bump and roughness variation.
+ * - Organic prehistoric serpent head: broad flattened skull, heavy supraorbital brow overhang,
+ *   deeply recessed eye sockets, elongated tapering snout, and inward-curved fangs.
+ * - Restrained palette: dark slate / muted deep mineral green (NOT pure black).
+ * - ZERO fantasy ears, ZERO helmet horns, ZERO cartoon fins, ZERO traffic-cone spikes.
  */
 
-// Procedural texture for the dorsal slate-teal scales with rocky variation and pale ventral belly plates
+// Procedural multi-tier scale texture with keeled dorsal scales and segmented ventral scutes
 function createSerpentSkinTexture(size = 1024) {
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
   const ctx = canvas.getContext('2d');
 
-  // Base deep teal-slate tone
-  ctx.fillStyle = '#183431';
+  // Base deep mineral slate-green tone
+  ctx.fillStyle = '#162422';
   ctx.fillRect(0, 0, size, size);
 
-  // Dorsal diamond rocky scales (left and right sides of texture: u < 0.35 or u > 0.65)
-  const scaleRows = 40;
-  const scaleCols = 40;
-  const cellW = size / scaleCols;
-  const cellH = size / scaleRows;
+  // 1. Dorsal Diamond Keeled Scales (u < 0.35 or u > 0.65)
+  const rows = 48;
+  const cols = 48;
+  const cellW = size / cols;
+  const cellH = size / rows;
 
-  for (let r = 0; r < scaleRows; r++) {
-    for (let c = 0; c < scaleCols; c++) {
-      const u = c / scaleCols;
-      const isBelly = u >= 0.34 && u <= 0.66;
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const u = c / cols;
+      const isBelly = u >= 0.33 && u <= 0.67;
 
       if (!isBelly) {
         const cx = (c + (r % 2) * 0.5) * cellW;
         const cy = r * cellH;
 
-        // Rocky color variation (slate-teal with occasional brownish/mossy scales)
-        const mossChance = Math.sin(r * 3.7 + c * 2.3);
-        let fillR = 26 + Math.floor(Math.random() * 20);
-        let fillG = 58 + Math.floor(Math.random() * 26);
-        let fillB = 54 + Math.floor(Math.random() * 22);
+        // Mineral color variation: dark slate with subtle olivine and weathered slate flecks
+        const noiseVal = Math.sin(r * 4.3 + c * 2.7);
+        let baseR = 22 + Math.floor(Math.random() * 16);
+        let baseG = 38 + Math.floor(Math.random() * 20);
+        let baseB = 34 + Math.floor(Math.random() * 16);
 
-        if (mossChance > 0.6) {
-          // Ancient moss/lichen patch
-          fillR += 32;
-          fillG += 22;
-          fillB -= 8;
+        if (noiseVal > 0.55) {
+          // Ancient mineral weathering / lichen tint
+          baseR += 14;
+          baseG += 18;
+          baseB += 8;
         }
 
-        ctx.fillStyle = `rgb(${fillR}, ${fillG}, ${fillB})`;
+        ctx.fillStyle = `rgb(${baseR}, ${baseG}, ${baseB})`;
         ctx.beginPath();
-        ctx.moveTo(cx, cy - cellH * 0.46);
+        ctx.moveTo(cx, cy - cellH * 0.48);
         ctx.lineTo(cx + cellW * 0.48, cy);
-        ctx.lineTo(cx, cy + cellH * 0.46);
+        ctx.lineTo(cx, cy + cellH * 0.48);
         ctx.lineTo(cx - cellW * 0.48, cy);
         ctx.closePath();
         ctx.fill();
 
-        // Scale rim highlight
-        ctx.strokeStyle = `rgba(145, 195, 185, ${0.14 + Math.random() * 0.14})`;
-        ctx.lineWidth = 1.2;
+        // Keeled ridge down the center of each scale
+        ctx.strokeStyle = `rgba(130, 165, 150, ${0.12 + Math.random() * 0.12})`;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - cellH * 0.45);
+        ctx.lineTo(cx, cy + cellH * 0.45);
+        ctx.stroke();
+
+        // Soft scale rim
+        ctx.strokeStyle = `rgba(15, 24, 22, 0.7)`;
+        ctx.lineWidth = 1.0;
         ctx.stroke();
       }
     }
   }
 
-  // Ventral (belly) banded horizontal scutes/plates (center strip: u=0.34 to u=0.66)
-  const bellyStartX = size * 0.34;
-  const bellyWidth = size * 0.32;
-  const plateCount = 48;
-  const plateHeight = size / plateCount;
+  // 2. Ventral (Belly) Segmented Scutes (center strip: u = 0.33 to 0.67)
+  const bellyStartX = size * 0.33;
+  const bellyWidth = size * 0.34;
+  const plateCount = 56;
+  const plateH = size / plateCount;
 
   for (let p = 0; p < plateCount; p++) {
-    const py = p * plateHeight;
+    const py = p * plateH;
 
-    // Pale sage-green/lichen bone gradient for each plate
-    const plateGrad = ctx.createLinearGradient(bellyStartX, py, bellyStartX + bellyWidth, py + plateHeight);
-    plateGrad.addColorStop(0, '#5C7469');
-    plateGrad.addColorStop(0.18, '#94ADA1');
-    plateGrad.addColorStop(0.5, '#ADC5B9');
-    plateGrad.addColorStop(0.82, '#8DA599');
-    plateGrad.addColorStop(1, '#536B60');
+    // Pale weathered bone / slate-lichen gradient
+    const grad = ctx.createLinearGradient(bellyStartX, py, bellyStartX + bellyWidth, py + plateH);
+    grad.addColorStop(0, '#3A4B45');
+    grad.addColorStop(0.2, '#556A61');
+    grad.addColorStop(0.5, '#687F75');
+    grad.addColorStop(0.8, '#52675E');
+    grad.addColorStop(1, '#364640');
 
-    ctx.fillStyle = plateGrad;
-    ctx.fillRect(bellyStartX, py, bellyWidth, plateHeight - 1.8);
+    ctx.fillStyle = grad;
+    ctx.fillRect(bellyStartX, py, bellyWidth, plateH - 1.8);
 
-    // Dark groove between plates
-    ctx.fillStyle = '#0F1E1A';
-    ctx.fillRect(bellyStartX, py + plateHeight - 2.2, bellyWidth, 2.2);
+    // Dark transverse groove between scutes
+    ctx.fillStyle = '#0D1715';
+    ctx.fillRect(bellyStartX, py + plateH - 2.2, bellyWidth, 2.2);
 
-    // Weathering scratches/creases across the belly plate
-    ctx.strokeStyle = 'rgba(30, 48, 42, 0.45)';
-    ctx.lineWidth = 1.0;
+    // Fine growth rings & horizontal wear lines
+    ctx.strokeStyle = 'rgba(25, 38, 33, 0.4)';
+    ctx.lineWidth = 0.8;
     ctx.beginPath();
-    ctx.moveTo(bellyStartX + Math.random() * 25, py + plateHeight * 0.5);
-    ctx.lineTo(bellyStartX + bellyWidth - Math.random() * 25, py + plateHeight * 0.5 + (Math.random() - 0.5) * 4);
+    ctx.moveTo(bellyStartX + 8, py + plateH * 0.5);
+    ctx.lineTo(bellyStartX + bellyWidth - 8, py + plateH * 0.5);
     ctx.stroke();
   }
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
-  texture.repeat.set(1, 14);
+  texture.repeat.set(1, 16);
   texture.needsUpdate = true;
   return texture;
 }
 
-// Procedural bump map for scale relief and belly plate grooves
+// Procedural micro-relief bump map
 function createSerpentBumpTexture(size = 512) {
   const canvas = document.createElement('canvas');
   canvas.width = size;
@@ -126,42 +134,47 @@ function createSerpentBumpTexture(size = 512) {
   ctx.fillStyle = '#808080';
   ctx.fillRect(0, 0, size, size);
 
-  // Belly plates
-  const bellyStartX = size * 0.34;
-  const bellyWidth = size * 0.32;
-  const plateCount = 48;
-  const plateHeight = size / plateCount;
+  // Ventral scute grooves
+  const bellyStartX = size * 0.33;
+  const bellyWidth = size * 0.34;
+  const plateCount = 56;
+  const plateH = size / plateCount;
 
   for (let p = 0; p < plateCount; p++) {
-    const py = p * plateHeight;
-    ctx.fillStyle = '#C0C0C0';
-    ctx.fillRect(bellyStartX, py + 1, bellyWidth, plateHeight - 3);
+    const py = p * plateH;
+    ctx.fillStyle = '#A0A0A0';
+    ctx.fillRect(bellyStartX, py + 1, bellyWidth, plateH - 3);
 
-    ctx.fillStyle = '#1A1A1A';
-    ctx.fillRect(bellyStartX, py + plateHeight - 2, bellyWidth, 2);
+    ctx.fillStyle = '#202020';
+    ctx.fillRect(bellyStartX, py + plateH - 2, bellyWidth, 2);
   }
 
-  // Scales bump
-  const scaleRows = 30;
-  const scaleCols = 30;
-  const cellW = size / scaleCols;
-  const cellH = size / scaleRows;
+  // Dorsal diamond scale relief
+  const rows = 36;
+  const cols = 36;
+  const cellW = size / cols;
+  const cellH = size / rows;
 
-  for (let r = 0; r < scaleRows; r++) {
-    for (let c = 0; c < scaleCols; c++) {
-      const u = c / scaleCols;
-      if (u < 0.32 || u > 0.68) {
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const u = c / cols;
+      if (u < 0.33 || u > 0.67) {
         const cx = (c + (r % 2) * 0.5) * cellW;
         const cy = r * cellH;
 
-        const grad = ctx.createRadialGradient(cx, cy, 1, cx, cy, cellW * 0.45);
-        grad.addColorStop(0, '#E8E8E8');
-        grad.addColorStop(0.55, '#808080');
-        grad.addColorStop(1, '#252525');
-        ctx.fillStyle = grad;
+        ctx.fillStyle = '#B0B0B0';
         ctx.beginPath();
-        ctx.arc(cx, cy, cellW * 0.44, 0, Math.PI * 2);
+        ctx.moveTo(cx, cy - cellH * 0.45);
+        ctx.lineTo(cx + cellW * 0.45, cy);
+        ctx.lineTo(cx, cy + cellH * 0.45);
+        ctx.lineTo(cx - cellW * 0.45, cy);
+        ctx.closePath();
         ctx.fill();
+
+        // Dark groove border
+        ctx.strokeStyle = '#303030';
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
       }
     }
   }
@@ -169,462 +182,538 @@ function createSerpentBumpTexture(size = 512) {
   const texture = new THREE.CanvasTexture(canvas);
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.RepeatWrapping;
-  texture.repeat.set(1, 14);
+  texture.repeat.set(1, 16);
   texture.needsUpdate = true;
   return texture;
+}
+
+/**
+ * Creates custom sculpted serpent head geometry (Cranium, Brow, Snout, and Nostrils)
+ * without primitive boxes or spheres. Formed via an anatomical cross-sectional lathe grid.
+ */
+function createSerpentCraniumGeometry() {
+  const lengthSteps = 26;
+  const radialSteps = 24;
+
+  const positions = [];
+  const normals = [];
+  const uvs = [];
+  const indices = [];
+
+  for (let i = 0; i <= lengthSteps; i++) {
+    const t = i / lengthSteps; // 0.0 (occiput / neck joint) to 1.0 (snout tip)
+    const z = t * 14.0 - 4.0; // skull length along local Z: -4.0 to +10.0
+
+    // Anatomical profile widths and heights along the skull:
+    // Behind eyes: broad cranium; Over eyes: heavy brow flare; Snout: tapered wedge
+    let width = 0;
+    let height = 0;
+    let yOffset = 0;
+
+    if (t < 0.3) {
+      // Occipital crest to posterior skull
+      const p = t / 0.3;
+      width = 4.2 + p * 1.8;
+      height = 3.2 + p * 0.6;
+      yOffset = 0.2 * (1.0 - p);
+    } else if (t < 0.55) {
+      // Supraorbital brow region (widest and deepest cranium)
+      const p = (t - 0.3) / 0.25;
+      width = 6.0 - p * 0.8;
+      height = 3.8 - p * 0.4;
+      yOffset = Math.sin(p * Math.PI) * 0.3;
+    } else if (t < 0.85) {
+      // Elongated snout tapering forward
+      const p = (t - 0.55) / 0.3;
+      width = 5.2 - p * 2.0;
+      height = 3.4 - p * 1.2;
+      yOffset = -p * 0.5;
+    } else {
+      // Rostral tip (snout apex)
+      const p = (t - 0.85) / 0.15;
+      width = 3.2 * (1.0 - p * 0.85);
+      height = 2.2 * (1.0 - p * 0.85);
+      yOffset = -0.5 - p * 0.2;
+    }
+
+    for (let j = 0; j <= radialSteps; j++) {
+      const phi = (j / radialSteps) * Math.PI * 2;
+      // Elliptical cross section with flattened ventrum and supraorbital brow ridges
+      let rx = Math.cos(phi) * width * 0.5;
+      let ry = Math.sin(phi) * height * 0.5 + yOffset;
+
+      // Heavy supraorbital brow overhang over eye sockets (at t ~ 0.45, phi ~ 0.8 and 2.3)
+      if (t >= 0.35 && t <= 0.6) {
+        const isUpperLateral = ry > 0 && Math.abs(rx) > width * 0.25;
+        if (isUpperLateral) {
+          // Flare the brow bone outward to cast deep natural orbital shadows
+          rx *= 1.18;
+          ry += 0.4;
+        }
+      }
+
+      // Flat ventral jaw plane
+      if (ry < -height * 0.35) {
+        ry = -height * 0.35;
+      }
+
+      // Meso surface scale displacement on the skull
+      const scaleDisplacement = Math.sin(t * 18.0) * Math.cos(phi * 8.0) * 0.08;
+      rx += scaleDisplacement * Math.cos(phi);
+      ry += scaleDisplacement * Math.sin(phi);
+
+      positions.push(rx, ry, z);
+      uvs.push(j / radialSteps, t);
+    }
+  }
+
+  // Generate triangle strip indices
+  for (let i = 0; i < lengthSteps; i++) {
+    for (let j = 0; j < radialSteps; j++) {
+      const a = i * (radialSteps + 1) + j;
+      const b = a + radialSteps + 1;
+      const c = a + 1;
+      const d = b + 1;
+
+      indices.push(a, b, c);
+      indices.push(c, b, d);
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return geo;
+}
+
+/**
+ * Creates sculpted lower mandible with realistic gular throat expansion
+ */
+function createSerpentMandibleGeometry() {
+  const lengthSteps = 18;
+  const radialSteps = 16;
+
+  const positions = [];
+  const uvs = [];
+  const indices = [];
+
+  for (let i = 0; i <= lengthSteps; i++) {
+    const t = i / lengthSteps;
+    const z = t * 11.5 - 3.5;
+
+    let width = 0;
+    let depth = 0;
+
+    if (t < 0.4) {
+      const p = t / 0.4;
+      width = 4.6 + p * 0.6;
+      depth = 1.8 + p * 0.5; // gular throat pouch
+    } else {
+      const p = (t - 0.4) / 0.6;
+      width = 5.2 * (1.0 - p * 0.65);
+      depth = 2.3 * (1.0 - p * 0.7);
+    }
+
+    for (let j = 0; j <= radialSteps; j++) {
+      const phi = (j / radialSteps) * Math.PI; // lower half ellipse
+      const rx = Math.cos(phi) * width * 0.5;
+      const ry = -Math.sin(phi) * depth - 0.4;
+
+      positions.push(rx, ry, z);
+      uvs.push(j / radialSteps, t);
+    }
+  }
+
+  for (let i = 0; i < lengthSteps; i++) {
+    for (let j = 0; j < radialSteps; j++) {
+      const a = i * (radialSteps + 1) + j;
+      const b = a + radialSteps + 1;
+      const c = a + 1;
+      const d = b + 1;
+
+      indices.push(a, b, c);
+      indices.push(c, b, d);
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return geo;
 }
 
 export default function Jormungandr() {
   const bodyGroupRef = useRef(null);
   const headGroupRef = useRef(null);
   const jawRef = useRef(null);
-  const beardGroupRef = useRef(null);
-  const leftEyeRef = useRef(null);
-  const rightEyeRef = useRef(null);
-  const breathMistRef = useRef(null);
 
-  const [mx, , mz] = OLYMPUS_CONFIG.world.mountainPosition; // [0, 0, -65]
-  const mHeight = OLYMPUS_CONFIG.world.mountainHeight;       // 96
+  // Generate procedural textures
+  const skinTexture = useMemo(() => createSerpentSkinTexture(1024), []);
+  const bumpTexture = useMemo(() => createSerpentBumpTexture(512), []);
 
-  // 1. Helical serpent body path coiled around Mount Olympus
-  // Engineered so the head terminates at [30, 106, -46] - directly towering beside summit
-  const { bodyGeo, bodyMat, spineSegments, headPosition, headLookTarget } = useMemo(() => {
-    const points = [];
-    const coils = 2.75;
-    const totalPoints = 175;
+  // Serpent material: restrained dark slate-mineral green with realistic specular response
+  const bodyMat = useMemo(() => {
+    return new THREE.MeshStandardMaterial({
+      map: skinTexture,
+      bumpMap: bumpTexture,
+      bumpScale: 1.6,
+      color: '#1E2C2A',
+      roughness: 0.65,
+      metalness: 0.22,
+      flatShading: false
+    });
+  }, [skinTexture, bumpTexture]);
 
-    // Spiral ascending along mountain slope from Aegean water (elevation -2)
-    for (let i = 0; i <= totalPoints; i++) {
-      const t = i / totalPoints;
-      // Angle: spiral starts at sea level, winds around the cone
-      const angle = t * Math.PI * 2 * coils + Math.PI * 0.3;
-      const heightT = Math.pow(t, 0.95) * 0.78; // rises up to 78% of mountain height (elevation ~74)
-      const elev = -2 + heightT * mHeight;
+  // Head geometries
+  const craniumGeo = useMemo(() => createSerpentCraniumGeometry(), []);
+  const mandibleGeo = useMemo(() => createSerpentMandibleGeometry(), []);
 
-      // Mountain radius decreases with height
-      const coneRadiusAtH = 68 * (1.0 - heightT * 0.9);
-      const serpentRadius = coneRadiusAtH + 4.2 + Math.sin(t * 16) * 0.9;
-
-      const px = mx + Math.cos(angle) * serpentRadius;
-      const pz = mz + Math.sin(angle) * serpentRadius;
-      const py = elev;
-
-      points.push(new THREE.Vector3(px, py, pz));
+  // Prehistoric ivory fang geometry
+  const fangGeo = useMemo(() => {
+    const geo = new THREE.ConeGeometry(0.24, 1.4, 8);
+    // Curve fangs inward
+    const pos = geo.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      const y = pos.getY(i);
+      const curveFactor = Math.pow(Math.max(0, 0.7 - y) / 1.4, 2.0);
+      pos.setZ(i, pos.getZ(i) - curveFactor * 0.45);
     }
+    geo.computeVertexNormals();
+    return geo;
+  }, []);
 
-    // Now construct the towering neck that breaks out from the mountain rock
-    // curves gracefully up to [30, 106, -46] on the right flank overlooking the temple
-    const lastP = points[points.length - 1];
-    const targetHeadPos = new THREE.Vector3(30, 106, -46);
-    const neckSteps = 30;
+  const fangMat = useMemo(() => {
+    return new THREE.MeshStandardMaterial({
+      color: '#D4CBB8',
+      roughness: 0.45,
+      metalness: 0.1
+    });
+  }, []);
 
-    for (let i = 1; i <= neckSteps; i++) {
-      const t = i / neckSteps;
-      // S-curve interpolation for majestic serpent arch
-      const smoothT = t * t * (3 - 2 * t);
-      const nx = THREE.MathUtils.lerp(lastP.x, targetHeadPos.x, smoothT) + Math.sin(t * Math.PI) * 4.5;
-      const ny = THREE.MathUtils.lerp(lastP.y, targetHeadPos.y, smoothT);
-      const nz = THREE.MathUtils.lerp(lastP.z, targetHeadPos.z, smoothT) + Math.sin(t * Math.PI) * 3.0;
+  // Build the colossal biological spline & variable cross-section geometry
+  const { bodyGeo, macroPlates, headTransform } = useMemo(() => {
+    // 16-waypoint biological spline wrapping around Mount Olympus
+    // Clear clearance from mountain rock, natural occlusion behind north face, separate from summit sanctuary
+    const waypoints = [
+      new THREE.Vector3(-78, 2, -30),    // 0: Tail emerging from Aegean ocean southwest
+      new THREE.Vector3(-74, 9, -58),    // 1: Sweeping up coastal spurs
+      new THREE.Vector3(-60, 18, -94),   // 2: Diving behind west-north mountain wall (OCCLUDED)
+      new THREE.Vector3(-18, 26, -114),  // 3: Passing behind northern massif cliffs (OCCLUDED)
+      new THREE.Vector3(38, 34, -108),   // 4: Behind northeast couloir (OCCLUDED)
+      new THREE.Vector3(64, 42, -78),    // 5: Emerging from east crags into view
+      new THREE.Vector3(56, 50, -38),    // 6: Crossing front southeast face
+      new THREE.Vector3(14, 58, -32),    // 7: Sweeping across central south face
+      new THREE.Vector3(-34, 66, -42),   // 8: Crossing southwest face
+      new THREE.Vector3(-48, 74, -72),   // 9: Passing behind west shoulder (OCCLUDED)
+      new THREE.Vector3(-32, 82, -100),  // 10: Behind northwest crags (OCCLUDED)
+      new THREE.Vector3(10, 89, -104),   // 11: Behind northern summit ridge (OCCLUDED)
+      new THREE.Vector3(38, 95, -86),    // 12: Rising on northeast flank
+      new THREE.Vector3(42, 101, -62),   // 13: Towering muscular neck arching above clouds
+      new THREE.Vector3(32, 103, -48),   // 14: Neck curving gracefully inward
+      new THREE.Vector3(22, 100, -56)    // 15: Skull overlooking summit sanctuary
+    ];
 
-      points.push(new THREE.Vector3(nx, ny, nz));
-    }
+    const curve = new THREE.CatmullRomCurve3(waypoints, false, 'centripetal', 0.5);
 
-    const curve = new THREE.CatmullRomCurve3(points, false, 'centripetal', 0.5);
+    // Build Bishop Rotation-Minimizing Frame along curve
+    const tubularSegments = 260;
+    const radialSegments = 24;
 
-    // Tube geometry with 240 segments
-    const tubularSegments = 240;
-    const radialSegments = 22;
-    const tubeGeo = new THREE.TubeGeometry(curve, tubularSegments, 4.4, radialSegments, false);
+    const frames = curve.computeFrenetFrames(tubularSegments, false);
 
-    // Modulate thickness: thickest at mid-body, tapered at tail, robust muscular neck
-    const pos = tubeGeo.attributes.position;
+    const positions = [];
+    const uvs = [];
+    const indices = [];
+
+    // Macro scale plates along dorsal ridge
+    const dorsalScutes = [];
+
     for (let i = 0; i <= tubularSegments; i++) {
       const t = i / tubularSegments;
-      let thickness = 1.0;
-      if (t < 0.1) {
-        thickness = 0.35 + (t / 0.1) * 0.65;
+      const pt = curve.getPointAt(t);
+      const N = frames.normals[i];
+      const B = frames.binormals[i];
+      const T = frames.tangents[i];
+
+      // Biological variable radius & taper profile:
+      // Tapered tail -> Colossal mid-body mass -> Powerful neck -> Skull transition
+      let radius = 1.0;
+      if (t < 0.15) {
+        radius = 1.6 + (t / 0.15) * 4.2;
       } else if (t < 0.72) {
-        thickness = 1.0 + Math.sin((t - 0.1) / 0.62 * Math.PI) * 0.52;
+        radius = 5.8 + Math.sin((t - 0.15) / 0.57 * Math.PI) * 1.4;
       } else {
-        // Muscular neck tapering gently towards skull
-        thickness = 1.15 - ((t - 0.72) / 0.28) * 0.22;
+        radius = 7.0 - ((t - 0.72) / 0.28) * 3.4;
       }
 
       for (let j = 0; j <= radialSegments; j++) {
-        const idx = i * (radialSegments + 1) + j;
-        if (idx < pos.count) {
-          const centerPt = curve.getPointAt(Math.min(1.0, t));
-          const vx = pos.getX(idx);
-          const vy = pos.getY(idx);
-          const vz = pos.getZ(idx);
+        const phi = (j / radialSegments) * Math.PI * 2;
+        // Elliptical cross section: wider flanks, flattened ventral crawl belly, keeled dorsal crest
+        const cosP = Math.cos(phi);
+        const sinP = Math.sin(phi);
 
-          pos.setX(idx, centerPt.x + (vx - centerPt.x) * thickness);
-          pos.setY(idx, centerPt.y + (vy - centerPt.y) * thickness);
-          pos.setZ(idx, centerPt.z + (vz - centerPt.z) * thickness);
+        let rx = cosP * (radius * 1.25); // muscular lateral breadth
+        let ry = sinP * radius;
+
+        // Flatten ventral belly (phi near -PI/2)
+        if (sinP < -0.45) {
+          ry = -radius * (0.45 + (sinP + 0.45) * 0.35);
         }
+
+        // Keeled dorsal ridge (phi near +PI/2)
+        if (sinP > 0.6) {
+          const keel = Math.pow((sinP - 0.6) / 0.4, 2.0) * (radius * 0.32);
+          ry += keel;
+        }
+
+        // Physical Meso-scale diamond displacement across flanks
+        const mesoDisplacement = Math.sin(t * 120.0) * Math.sin(phi * 8.0) * 0.18;
+        rx += mesoDisplacement * cosP;
+        ry += mesoDisplacement * sinP;
+
+        // Position in 3D world space
+        const vx = pt.x + N.x * rx + B.x * ry;
+        const vy = pt.y + N.y * rx + B.y * ry;
+        const vz = pt.z + N.z * rx + B.z * ry;
+
+        positions.push(vx, vy, vz);
+        uvs.push(j / radialSegments, t * 16.0);
       }
-    }
-    tubeGeo.computeVertexNormals();
 
-    const skinTex = createSerpentSkinTexture(1024);
-    const bumpTex = createSerpentBumpTexture(512);
-
-    const bMat = new THREE.MeshStandardMaterial({
-      map: skinTex,
-      bumpMap: bumpTex,
-      bumpScale: 1.8,
-      roughness: 0.72,
-      metalness: 0.15,
-      flatShading: false
-    });
-
-    // Compute dorsal spine ridges along upper neck
-    const spines = [];
-    for (let i = tubularSegments - 45; i < tubularSegments - 3; i += 3) {
-      const t = i / tubularSegments;
-      const pt = curve.getPointAt(t);
-      const tangent = curve.getTangentAt(t);
-      // Upward dorsal normal vector
-      const up = new THREE.Vector3(0, 1, 0);
-      const binormal = new THREE.Vector3().crossVectors(tangent, up).normalize();
-      const normal = new THREE.Vector3().crossVectors(binormal, tangent).normalize();
-
-      const spinePos = pt.clone().add(normal.clone().multiplyScalar(4.0));
-      spines.push({
-        pos: [spinePos.x, spinePos.y, spinePos.z],
-        rot: [tangent.z, 0, -tangent.x],
-        scale: 0.8 + Math.sin(t * Math.PI) * 0.6
-      });
-    }
-
-    const endPoint = points[points.length - 1];
-    // Head looks towards the summit sanctuary [0, 95.5, -68]
-    const lookTarget = new THREE.Vector3(0, 95.5, -68);
-
-    return {
-      bodyGeo: tubeGeo,
-      bodyMat: bMat,
-      spineSegments: spines,
-      headPosition: [endPoint.x, endPoint.y, endPoint.z],
-      headLookTarget: lookTarget
-    };
-  }, [mx, mz, mHeight]);
-
-  // Beard fibers (hanging shaggy tendrils under lower jaw and chin)
-  const beardTendrils = useMemo(() => {
-    const list = [];
-    const rows = 6;
-    const cols = 8;
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        const ox = (c - (cols - 1) / 2) * 0.9;
-        const oz = (r - (rows - 1) / 2) * 1.3 + 1.8;
-        const length = 5.5 + Math.random() * 5.0 - Math.abs(ox) * 0.6 + (r === 0 ? 3.0 : 0);
-        const radius = 0.10 + Math.random() * 0.08;
-        list.push({
-          pos: [ox + (Math.random() - 0.5) * 0.25, -1.4, oz + (Math.random() - 0.5) * 0.35],
-          length,
-          radius,
-          tiltX: 0.18 + (Math.random() - 0.5) * 0.12,
-          tiltZ: (c - (cols - 1) / 2) * 0.08
+      // Generate macro anatomical scale plates along upper neck & back (t: 0.55 to 0.94)
+      if (i % 4 === 0 && t > 0.52 && t < 0.94) {
+        const scutePos = pt.clone().add(B.clone().multiplyScalar(radius * 1.15));
+        dorsalScutes.push({
+          pos: [scutePos.x, scutePos.y, scutePos.z],
+          tangent: [T.x, T.y, T.z],
+          binormal: [B.x, B.y, B.z],
+          scale: (0.8 + Math.sin(t * Math.PI) * 0.45) * (radius / 6.0)
         });
       }
     }
-    return list;
+
+    for (let i = 0; i < tubularSegments; i++) {
+      for (let j = 0; j < radialSegments; j++) {
+        const a = i * (radialSegments + 1) + j;
+        const b = a + radialSegments + 1;
+        const c = a + 1;
+        const d = b + 1;
+
+        indices.push(a, b, c);
+        indices.push(c, b, d);
+      }
+    }
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    geo.setIndex(indices);
+    geo.computeVertexNormals();
+
+    // Head orientation at terminus
+    const lastPt = waypoints[waypoints.length - 1];
+
+    // Look towards summit sanctuary platform [0, 94, -68]
+    const lookTarget = new THREE.Vector3(0, 94, -68);
+    const toSanctuary = new THREE.Vector3().subVectors(lookTarget, lastPt).normalize();
+
+    return {
+      bodyGeo: geo,
+      macroPlates: dorsalScutes,
+      headTransform: {
+        pos: [lastPt.x, lastPt.y, lastPt.z],
+        rotY: Math.atan2(toSanctuary.x, toSanctuary.z),
+        rotX: -toSanctuary.y * 0.4
+      }
+    };
   }, []);
 
-  // Frame animation: undulating body breath, majestic living head sway, jaw breathing, eye glow pulse
+  // Macro scale plate geometry (Carinated, overlapping curved anatomical scute)
+  const scuteGeo = useMemo(() => {
+    const shape = new THREE.Shape();
+    shape.moveTo(0, 1.8);
+    shape.lineTo(1.1, 0.4);
+    shape.lineTo(0.9, -1.2);
+    shape.lineTo(0, -1.8);
+    shape.lineTo(-0.9, -1.2);
+    shape.lineTo(-1.1, 0.4);
+    shape.closePath();
+
+    const extrudeSettings = {
+      depth: 0.35,
+      bevelEnabled: true,
+      bevelSegments: 3,
+      steps: 1,
+      bevelSize: 0.18,
+      bevelThickness: 0.18
+    };
+
+    const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+    geo.computeVertexNormals();
+    return geo;
+  }, []);
+
+  const scuteMat = useMemo(() => {
+    return new THREE.MeshStandardMaterial({
+      color: '#263834',
+      roughness: 0.58,
+      metalness: 0.25
+    });
+  }, []);
+
+  // Massive slow biological respiration and living sway
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
 
-    // Body breathing undulation
+    // Colossal body breathing expansion
     if (bodyGroupRef.current) {
-      bodyGroupRef.current.position.y = Math.sin(t * 0.55) * 0.45;
+      bodyGroupRef.current.position.y = Math.sin(t * 0.35) * 0.35;
     }
 
-    // Head breathing and living sway in mountain wind
+    // Majestic living sway of the raised serpent head overlooking Olympus
     if (headGroupRef.current) {
-      headGroupRef.current.position.y = headPosition[1] + Math.sin(t * 0.65) * 0.6;
-      headGroupRef.current.rotation.y = -2.15 + Math.sin(t * 0.4) * 0.06;
-      headGroupRef.current.rotation.x = 0.22 + Math.sin(t * 0.5) * 0.03;
-      headGroupRef.current.rotation.z = -0.1 + Math.cos(t * 0.45) * 0.025;
+      const basePos = headTransform.pos;
+      headGroupRef.current.position.y = basePos[1] + Math.sin(t * 0.45) * 0.5;
+      headGroupRef.current.rotation.y = headTransform.rotY + Math.sin(t * 0.28) * 0.05;
+      headGroupRef.current.rotation.x = headTransform.rotX + Math.sin(t * 0.38) * 0.03;
     }
 
-    // Lower jaw breathing
+    // Slow gular respiration in lower jaw
     if (jawRef.current) {
-      jawRef.current.rotation.x = 0.06 + Math.sin(t * 0.75) * 0.04;
-    }
-
-    // Beard swaying in alpine wind
-    if (beardGroupRef.current) {
-      beardGroupRef.current.rotation.x = 0.12 + Math.sin(t * 1.4) * 0.1;
-      beardGroupRef.current.rotation.z = Math.cos(t * 1.1) * 0.08;
-    }
-
-    // Glowing amber eyes pulsating with ancient divine fire
-    if (leftEyeRef.current && rightEyeRef.current) {
-      const eyeIntensity = 2.8 + Math.sin(t * 2.5) * 0.9;
-      leftEyeRef.current.material.emissiveIntensity = eyeIntensity;
-      rightEyeRef.current.material.emissiveIntensity = eyeIntensity;
-    }
-
-    // Nostril frost breath vapor pulsing
-    if (breathMistRef.current) {
-      const mistScale = 1.0 + Math.sin(t * 1.5) * 0.35;
-      breathMistRef.current.scale.set(mistScale, mistScale, mistScale);
-      breathMistRef.current.material.opacity = 0.28 + Math.sin(t * 1.5) * 0.15;
+      jawRef.current.rotation.x = 0.04 + Math.sin(t * 0.5) * 0.03;
     }
   });
 
   return (
     <group>
-      {/* 1. Serpentine Body wrapped around Mount Olympus */}
+      {/* 1. Muscular Biological Serpent Body with 3-tier scales */}
       <group ref={bodyGroupRef}>
-        <mesh geometry={bodyGeo} material={bodyMat} castShadow receiveShadow />
+        <mesh
+          geometry={bodyGeo}
+          material={bodyMat}
+          castShadow
+          receiveShadow
+        />
 
-        {/* Dorsal Spine Ridges along Upper Neck */}
-        {spineSegments.map((s, idx) => (
-          <mesh
-            key={`spine-${idx}`}
+        {/* Macro Overlapping Anatomical Scale Plates along Dorsal Spine */}
+        {macroPlates.map((s, idx) => (
+          <group
+            key={`macro-scute-${idx}`}
             position={s.pos}
-            rotation={s.rot}
-            scale={[s.scale, s.scale * 1.5, s.scale]}
-            castShadow
+            scale={[s.scale, s.scale, s.scale * 1.2]}
           >
-            <coneGeometry args={[0.8, 2.8, 4]} />
-            <meshStandardMaterial color="#F8FAFC" roughness={0.4} flatShading />
-          </mesh>
+            <mesh
+              geometry={scuteGeo}
+              material={scuteMat}
+              rotation={[0.3, 0, 0]}
+              castShadow
+            />
+          </group>
         ))}
       </group>
 
-      {/* 2. TITANIC, HYPER-REALISTIC HEAD SCULPT (Towering at [30, 106, -46]) */}
+      {/* 2. Sculpted Prehistoric Serpent Skull (Towering in space clear of the sanctuary) */}
       <group
         ref={headGroupRef}
-        position={[headPosition[0], headPosition[1], headPosition[2]]}
-        rotation={[0.22, -2.15, -0.1]}
-        scale={[1.4, 1.4, 1.4]}
+        position={headTransform.pos}
+        rotation={[headTransform.rotX, headTransform.rotY, 0]}
+        scale={[1.15, 1.15, 1.15]}
       >
-        {/* Main Cranium / Skull Base */}
-        <mesh castShadow receiveShadow position={[0, 0.6, 0]}>
-          <sphereGeometry args={[5.8, 24, 20]} />
-          <meshStandardMaterial
-            map={bodyMat.map}
-            bumpMap={bodyMat.bumpMap}
-            bumpScale={1.6}
-            color="#254A44"
-            roughness={0.7}
-            metalness={0.15}
-          />
-        </mesh>
+        {/* Upper Cranium & Elongated Snout */}
+        <mesh
+          geometry={craniumGeo}
+          material={bodyMat}
+          castShadow
+          receiveShadow
+        />
 
-        {/* Broad Rounded Snout (God of War Reference Match) */}
-        <mesh position={[0, -0.2, 6.4]} castShadow>
-          <boxGeometry args={[6.2, 3.8, 7.5]} />
-          <meshStandardMaterial
-            map={bodyMat.map}
-            bumpMap={bodyMat.bumpMap}
-            bumpScale={1.5}
-            color="#20443F"
-            roughness={0.72}
-            metalness={0.12}
-          />
-        </mesh>
-
-        {/* Rounded Snout Tip */}
-        <mesh position={[0, -0.4, 10.0]} castShadow>
-          <sphereGeometry args={[2.9, 16, 14]} />
-          <meshStandardMaterial color="#1B3D38" roughness={0.75} metalness={0.1} />
-        </mesh>
-
-        {/* Twin Nostrils on Tip of Snout */}
-        <mesh position={[-1.3, 1.0, 10.2]} rotation={[0.4, -0.2, 0]}>
-          <sphereGeometry args={[0.5, 10, 10]} />
-          <meshStandardMaterial color="#0A1613" roughness={0.9} />
-        </mesh>
-        <mesh position={[1.3, 1.0, 10.2]} rotation={[0.4, 0.2, 0]}>
-          <sphereGeometry args={[0.5, 10, 10]} />
-          <meshStandardMaterial color="#0A1613" roughness={0.9} />
-        </mesh>
-
-        {/* Nostril Frost Mist Vapor Particles */}
-        <mesh ref={breathMistRef} position={[0, 0.6, 12.5]}>
-          <sphereGeometry args={[1.8, 12, 12]} />
-          <meshBasicMaterial color="#E0F2FE" transparent opacity={0.35} />
-        </mesh>
-
-        {/* Flaring Ear Crests / Lateral Horn Fins (Signature feature from reference image) */}
-        <group position={[-5.0, 3.0, -1.5]} rotation={[0.2, -0.65, 0.55]}>
-          <mesh castShadow>
-            <coneGeometry args={[1.8, 5.2, 6]} />
-            <meshStandardMaterial color="#193833" roughness={0.65} metalness={0.2} />
-          </mesh>
-          {/* Ear crest cartilage ribs */}
-          <mesh position={[0.6, 0.2, 0.2]} rotation={[0, 0, 0.3]} castShadow>
-            <coneGeometry args={[0.7, 4.0, 5]} />
-            <meshStandardMaterial color="#2B544D" roughness={0.6} />
-          </mesh>
-        </group>
-
-        <group position={[5.0, 3.0, -1.5]} rotation={[0.2, 0.65, -0.55]}>
-          <mesh castShadow>
-            <coneGeometry args={[1.8, 5.2, 6]} />
-            <meshStandardMaterial color="#193833" roughness={0.65} metalness={0.2} />
-          </mesh>
-          {/* Ear crest cartilage ribs */}
-          <mesh position={[-0.6, 0.2, 0.2]} rotation={[0, 0, -0.3]} castShadow>
-            <coneGeometry args={[0.7, 4.0, 5]} />
-            <meshStandardMaterial color="#2B544D" roughness={0.6} />
-          </mesh>
-        </group>
-
-        {/* CROWN OF MOUNTAIN SNOW / FROST (Exact match to reference image) */}
-        {/* Thick layer of pure white mountain snow sculpted over cranium & snout */}
-        <group position={[0, 4.8, 2.2]}>
-          <mesh castShadow receiveShadow>
-            <sphereGeometry args={[4.4, 20, 16]} />
-            <meshStandardMaterial
-              color="#F8FAFC"
-              roughness={0.4}
-              metalness={0.08}
-              flatShading
-            />
-          </mesh>
-          {/* Snow crags running forward towards snout */}
-          <mesh position={[0, -0.9, 3.8]} scale={[3.2, 1.3, 4.4]} castShadow>
-            <dodecahedronGeometry args={[1.3, 1]} />
-            <meshStandardMaterial color="#F8FAFC" roughness={0.35} flatShading />
-          </mesh>
-          <mesh position={[-1.0, -0.5, 1.8]} scale={[2.0, 1.2, 2.6]} castShadow>
-            <dodecahedronGeometry args={[1.1, 1]} />
-            <meshStandardMaterial color="#FFFFFF" roughness={0.35} flatShading />
-          </mesh>
-          <mesh position={[1.0, -0.5, 1.8]} scale={[2.0, 1.2, 2.6]} castShadow>
-            <dodecahedronGeometry args={[1.1, 1]} />
-            <meshStandardMaterial color="#FFFFFF" roughness={0.35} flatShading />
-          </mesh>
-        </group>
-
-        {/* Glowing Golden-Amber Left Eye with Brow Ridge */}
-        <group position={[-3.2, 1.6, 4.2]}>
-          {/* Heavy Brow Ridge */}
-          <mesh position={[0, 0.9, 0]} rotation={[0.2, -0.3, 0.2]} castShadow>
-            <boxGeometry args={[2.0, 1.0, 2.6]} />
-            <meshStandardMaterial color="#142E29" roughness={0.8} />
-          </mesh>
-          {/* Deep Dark Socket */}
-          <mesh>
-            <sphereGeometry args={[1.2, 12, 10]} />
-            <meshStandardMaterial color="#06100D" roughness={0.9} />
-          </mesh>
-          {/* Piercing Amber Eye */}
-          <mesh ref={leftEyeRef} position={[0, 0, 0.7]}>
-            <sphereGeometry args={[0.85, 16, 14]} />
-            <meshStandardMaterial
-              color="#FFB300"
-              emissive="#FF8F00"
-              emissiveIntensity={2.8}
-              roughness={0.12}
-              metalness={0.5}
-            />
-          </mesh>
-          {/* Slit Pupil */}
-          <mesh position={[0, 0, 1.45]}>
-            <boxGeometry args={[0.14, 0.95, 0.1]} />
-            <meshBasicMaterial color="#000000" />
-          </mesh>
-          <pointLight color="#FFB300" intensity={18} distance={24} />
-        </group>
-
-        {/* Glowing Golden-Amber Right Eye with Brow Ridge */}
-        <group position={[3.2, 1.6, 4.2]}>
-          {/* Heavy Brow Ridge */}
-          <mesh position={[0, 0.9, 0]} rotation={[0.2, 0.3, -0.2]} castShadow>
-            <boxGeometry args={[2.0, 1.0, 2.6]} />
-            <meshStandardMaterial color="#142E29" roughness={0.8} />
-          </mesh>
-          {/* Deep Dark Socket */}
-          <mesh>
-            <sphereGeometry args={[1.2, 12, 10]} />
-            <meshStandardMaterial color="#06100D" roughness={0.9} />
-          </mesh>
-          {/* Piercing Amber Eye */}
-          <mesh ref={rightEyeRef} position={[0, 0, 0.7]}>
-            <sphereGeometry args={[0.85, 16, 14]} />
-            <meshStandardMaterial
-              color="#FFB300"
-              emissive="#FF8F00"
-              emissiveIntensity={2.8}
-              roughness={0.12}
-              metalness={0.5}
-            />
-          </mesh>
-          {/* Slit Pupil */}
-          <mesh position={[0, 0, 1.45]}>
-            <boxGeometry args={[0.14, 0.95, 0.1]} />
-            <meshBasicMaterial color="#000000" />
-          </mesh>
-          <pointLight color="#FFB300" intensity={18} distance={24} />
-        </group>
-
-        {/* Upper Serrated Teeth Row along Mouth Line */}
-        {[-2.5, -1.7, -0.9, 0, 0.9, 1.7, 2.5].map((offset, i) => (
+        {/* Articulated Lower Mandible & Gular Throat Pouch */}
+        <group ref={jawRef} position={[0, -0.6, -1.0]}>
           <mesh
-            key={`upper-teeth-${i}`}
-            position={[offset, -1.9, 8.6 - Math.abs(offset) * 0.45]}
-            rotation={[-0.2, 0, 0]}
-          >
-            <coneGeometry args={[0.26, 1.0, 4]} />
-            <meshStandardMaterial color="#F4EED8" roughness={0.35} metalness={0.2} />
-          </mesh>
-        ))}
+            geometry={mandibleGeo}
+            material={bodyMat}
+            castShadow
+            receiveShadow
+          />
+        </group>
 
-        {/* Animated Lower Jaw & Hanging Shaggy Moss Beard */}
-        <group ref={jawRef} position={[0, -2.4, 4.2]}>
-          {/* Lower Jaw Bone */}
-          <mesh castShadow position={[0, -0.5, 2.8]}>
-            <boxGeometry args={[5.2, 1.8, 6.5]} />
+        {/* Deeply Recessed Orbital Cavities & Dark Reptilian Eyes (Recessed under heavy brow) */}
+        {/* Left Eye */}
+        <group position={[-2.4, 0.4, 1.8]} rotation={[0.1, -0.3, 0]}>
+          {/* Orbital Bone Cavity Shadow */}
+          <mesh>
+            <sphereGeometry args={[0.9, 12, 10]} />
+            <meshStandardMaterial color="#0A1412" roughness={0.95} />
+          </mesh>
+          {/* Piercing Amber Eye with Reptilian Slit Pupil */}
+          <mesh position={[0, 0, 0.45]}>
+            <sphereGeometry args={[0.55, 16, 12]} />
             <meshStandardMaterial
-              map={bodyMat.map}
-              color="#193B35"
-              roughness={0.75}
-              metalness={0.1}
+              color="#D97706"
+              roughness={0.25}
+              metalness={0.3}
+              emissive="#78350F"
+              emissiveIntensity={0.6}
             />
           </mesh>
-
-          {/* Lower Teeth Row */}
-          {[-2.0, -1.1, 0, 1.1, 2.0].map((offset, i) => (
-            <mesh
-              key={`lower-teeth-${i}`}
-              position={[offset, 0.9, 5.4 - Math.abs(offset) * 0.35]}
-              rotation={[0.2, 0, 0]}
-            >
-              <coneGeometry args={[0.22, 0.9, 4]} />
-              <meshStandardMaterial color="#F0E8D0" roughness={0.35} />
-            </mesh>
-          ))}
-
-          {/* SHAGGY MOSS BEARD / TENDRILS (Exact match to reference image) */}
-          <group ref={beardGroupRef} position={[0, -1.2, 1.2]}>
-            {beardTendrils.map((tendril, idx) => (
-              <mesh
-                key={`tendril-${idx}`}
-                position={tendril.pos}
-                rotation={[tendril.tiltX, 0, tendril.tiltZ]}
-                castShadow
-              >
-                <cylinderGeometry
-                  args={[tendril.radius * 0.6, tendril.radius, tendril.length, 5]}
-                />
-                <meshStandardMaterial
-                  color="#0F201B"
-                  roughness={0.92}
-                  metalness={0.04}
-                  flatShading
-                />
-              </mesh>
-            ))}
-          </group>
         </group>
+
+        {/* Right Eye */}
+        <group position={[2.4, 0.4, 1.8]} rotation={[0.1, 0.3, 0]}>
+          <mesh>
+            <sphereGeometry args={[0.9, 12, 10]} />
+            <meshStandardMaterial color="#0A1412" roughness={0.95} />
+          </mesh>
+          <mesh position={[0, 0, 0.45]}>
+            <sphereGeometry args={[0.55, 16, 12]} />
+            <meshStandardMaterial
+              color="#D97706"
+              roughness={0.25}
+              metalness={0.3}
+              emissive="#78350F"
+              emissiveIntensity={0.6}
+            />
+          </mesh>
+        </group>
+
+        {/* Curved Prehistoric Ivory Fangs */}
+        {/* Upper Left Maxillary Fang */}
+        <mesh
+          geometry={fangGeo}
+          material={fangMat}
+          position={[-1.6, -1.1, 5.2]}
+          rotation={[Math.PI - 0.2, 0, -0.15]}
+          castShadow
+        />
+        {/* Upper Right Maxillary Fang */}
+        <mesh
+          geometry={fangGeo}
+          material={fangMat}
+          position={[1.6, -1.1, 5.2]}
+          rotation={[Math.PI - 0.2, 0, 0.15]}
+          castShadow
+        />
+        {/* Secondary Upper Fangs */}
+        <mesh
+          geometry={fangGeo}
+          material={fangMat}
+          position={[-1.3, -1.0, 3.8]}
+          rotation={[Math.PI - 0.15, 0, -0.1]}
+          scale={[0.7, 0.7, 0.7]}
+          castShadow
+        />
+        <mesh
+          geometry={fangGeo}
+          material={fangMat}
+          position={[1.3, -1.0, 3.8]}
+          rotation={[Math.PI - 0.15, 0, 0.1]}
+          scale={[0.7, 0.7, 0.7]}
+          castShadow
+        />
       </group>
     </group>
   );

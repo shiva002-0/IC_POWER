@@ -80,11 +80,11 @@ export default function Atmosphere() {
 
   const skyUniforms = useMemo(() => ({
     uTime: { value: 0 },
-    uTopColor: { value: new THREE.Color('#030714') },
-    uHorizonColor: { value: new THREE.Color('#3A1846') },
-    uDawnAmber: { value: new THREE.Color('#E58E26') },
-    uSunColor: { value: new THREE.Color(CELESTIAL_THEME.sun.color) },
-    uSunHaloColor: { value: new THREE.Color(CELESTIAL_THEME.sun.haloColor) },
+    uTopColor: { value: new THREE.Color('#020716') },
+    uHorizonColor: { value: new THREE.Color('#241530') },
+    uDawnAmber: { value: new THREE.Color('#C87B28') },
+    uSunColor: { value: new THREE.Color('#FDE047') },
+    uSunHaloColor: { value: new THREE.Color('#D97706') },
     uSunPosition: { value: new THREE.Vector3(...CELESTIAL_THEME.sun.position) }
   }), []);
 
@@ -99,15 +99,15 @@ export default function Atmosphere() {
 
   return (
     <>
-      {/* 1. Atmospheric Fog */}
+      {/* 1. Atmospheric Distance Fog */}
       <fogExp2
         attach="fog"
-        args={[CELESTIAL_THEME.sky.fogColor, CELESTIAL_THEME.sky.fogDensity * 0.85]}
+        args={[CELESTIAL_THEME.sky.fogColor, CELESTIAL_THEME.sky.fogDensity * 0.65]}
       />
 
       {/* 2. Panoramic Sky Dome Sphere with Rayleigh/Mie & Starfield */}
       <mesh ref={skyMeshRef} scale={[-1, 1, 1]}>
-        <sphereGeometry args={[850, 48, 36]} />
+        <sphereGeometry args={[1400, 48, 36]} />
         <shaderMaterial
           vertexShader={skyVertexShader}
           fragmentShader={skyFragmentShader}
@@ -117,49 +117,51 @@ export default function Atmosphere() {
         />
       </mesh>
 
-      {/* 3. High-Fidelity Solar Disc with Lens Flare Corona Billboard */}
+      {/* 3. Physical Solar Body with Soft Natural Corona */}
       <group position={CELESTIAL_THEME.sun.position}>
-        {/* Blinding Solar Core */}
+        {/* Solar Core */}
         <mesh>
-          <sphereGeometry args={[9, 32, 32]} />
+          <sphereGeometry args={[10, 32, 32]} />
           <meshBasicMaterial color="#FFFFFF" />
         </mesh>
 
         {/* Inner Golden Chromosphere */}
         <mesh>
-          <sphereGeometry args={[14, 32, 32]} />
+          <sphereGeometry args={[16, 32, 32]} />
           <meshBasicMaterial
-            color={CELESTIAL_THEME.sun.color}
+            color="#FDE047"
             transparent
-            opacity={0.7}
+            opacity={0.6}
           />
         </mesh>
 
         {/* Outer Solar Flare Corona Billboard */}
-        <sprite ref={sunMeshRef} scale={[120, 120, 1]}>
+        <sprite ref={sunMeshRef} scale={[110, 110, 1]}>
           <spriteMaterial
             map={sunFlareTex}
             transparent
-            opacity={0.88}
+            opacity={0.75}
             blending={THREE.AdditiveBlending}
             depthWrite={false}
           />
         </sprite>
       </group>
 
-      {/* 4. Directional Golden Sunlight Rig */}
-      <ambientLight color="#182338" intensity={0.8} />
+      {/* 4. Unified Celestial Lighting Rig */}
+      <ambientLight color="#121D2C" intensity={0.55} />
 
+      {/* Sky & Aegean Ground Bounce (Restrained natural palette, zero electric cyan) */}
       <hemisphereLight
-        color="#38BDF8"
-        groundColor="#09182E"
-        intensity={0.75}
+        color="#94A3B8"
+        groundColor="#0A1422"
+        intensity={0.65}
       />
 
+      {/* Primary Directional Golden Sunlight */}
       <directionalLight
         position={CELESTIAL_THEME.sun.position}
-        color={CELESTIAL_THEME.sun.color}
-        intensity={2.8}
+        color="#FFF1D6"
+        intensity={2.4}
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
@@ -174,9 +176,9 @@ export default function Atmosphere() {
 
       {/* Fill Light for Cliffs and Mountain Shadow Sides */}
       <directionalLight
-        position={[-80, 50, 60]}
-        color="#60A5FA"
-        intensity={0.45}
+        position={[-CELESTIAL_THEME.sun.position[0], 60, -CELESTIAL_THEME.sun.position[2]]}
+        color="#708DA8"
+        intensity={0.35}
       />
     </>
   );

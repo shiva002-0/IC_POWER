@@ -199,34 +199,30 @@ export default function GreekFloatingIslands() {
   useFrame(({ clock }, delta) => {
     const t = clock.elapsedTime;
 
-    // Island 1: Sanctuary of Zephyrus (West)
+    // Slow tectonic levitation drift communicating colossal geological mass
     if (island1Ref.current) {
-      island1Ref.current.position.y = 54 + Math.sin(t * 0.45) * 1.5;
-      island1Ref.current.rotation.z = Math.sin(t * 0.3) * 0.02;
+      island1Ref.current.position.y = 54 + Math.sin(t * 0.08) * 0.28;
+      island1Ref.current.rotation.z = Math.sin(t * 0.05) * 0.008;
     }
 
-    // Island 2: Cascade of the Naiads (East)
     if (island2Ref.current) {
-      island2Ref.current.position.y = 62 + Math.sin(t * 0.5 + 1.2) * 1.8;
-      island2Ref.current.rotation.x = Math.cos(t * 0.35 + 0.5) * 0.02;
+      island2Ref.current.position.y = 62 + Math.sin(t * 0.07 + 1.2) * 0.32;
+      island2Ref.current.rotation.x = Math.cos(t * 0.06 + 0.5) * 0.008;
     }
 
-    // Island 3: High Altar of Apollo (Northwest)
     if (island3Ref.current) {
-      island3Ref.current.position.y = 78 + Math.sin(t * 0.4 + 2.4) * 2.0;
-      island3Ref.current.rotation.z = Math.cos(t * 0.28) * 0.025;
+      island3Ref.current.position.y = 78 + Math.sin(t * 0.06 + 2.4) * 0.35;
+      island3Ref.current.rotation.z = Math.cos(t * 0.05) * 0.008;
     }
 
-    // Island 4: Terrace of the Muses (Northeast)
     if (island4Ref.current) {
-      island4Ref.current.position.y = 73 + Math.sin(t * 0.42 + 3.8) * 1.6;
-      island4Ref.current.rotation.y = Math.sin(t * 0.15) * 0.03;
+      island4Ref.current.position.y = 73 + Math.sin(t * 0.07 + 3.8) * 0.26;
+      island4Ref.current.rotation.y = Math.sin(t * 0.04) * 0.008;
     }
 
-    // Island 5: Outpost of Hermes (South approach)
     if (island5Ref.current) {
-      island5Ref.current.position.y = 42 + Math.sin(t * 0.52 + 4.5) * 1.4;
-      island5Ref.current.rotation.x = Math.sin(t * 0.32) * 0.02;
+      island5Ref.current.position.y = 42 + Math.sin(t * 0.09 + 4.5) * 0.24;
+      island5Ref.current.rotation.x = Math.sin(t * 0.05) * 0.006;
     }
 
     // Scroll waterfall texture downwards

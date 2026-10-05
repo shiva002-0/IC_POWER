@@ -32,8 +32,6 @@ function GreekColumn({ position, height = 7.5, radius = 0.45 }) {
 }
 
 export default function MountOlympus() {
-  const beaconRef = useRef(null);
-  const ringRef = useRef(null);
   const flameRef = useRef(null);
 
   const rockTexture = useMemo(() => createRockTexture(512), []);
@@ -44,7 +42,6 @@ export default function MountOlympus() {
     // High-resolution cone base geometry for organic mountain sculpting
     const geo = new THREE.ConeGeometry(68, OLYMPUS_CONFIG.world.mountainHeight, 64, 48);
     const pos = geo.attributes.position;
-    const normals = geo.attributes.normal;
 
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i);
@@ -167,24 +164,15 @@ export default function MountOlympus() {
   }, []);
 
 
-  useFrame((state, delta) => {
-    if (beaconRef.current) {
-      beaconRef.current.rotation.y += delta * 0.25;
-    }
-    if (ringRef.current) {
-      ringRef.current.rotation.z -= delta * 0.15;
-      ringRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.5) * 0.08;
-    }
+  useFrame((state) => {
     if (flameRef.current) {
-      const scale = 1.0 + Math.sin(state.clock.elapsedTime * 8.0) * 0.15;
-      flameRef.current.scale.set(scale, scale * 1.2, scale);
+      const scale = 1.0 + Math.sin(state.clock.elapsedTime * 6.0) * 0.08;
+      flameRef.current.scale.set(scale, scale * 1.15, scale);
     }
   });
 
   const [mx, my, mz] = OLYMPUS_CONFIG.world.mountainPosition;
   const [px, py, pz] = OLYMPUS_CONFIG.world.sanctuaryPlatform;
-  const [rx, ry, rz] = OLYMPUS_CONFIG.world.torusHaloPosition;
-  const [bx, by, bz] = OLYMPUS_CONFIG.world.beaconLightPosition;
 
   return (
     <group>
@@ -193,52 +181,48 @@ export default function MountOlympus() {
         <mesh geometry={mountainGeo} material={mountainMaterial} receiveShadow castShadow />
       </group>
 
-      {/* 2. Classical Greek Pantheon Summit Sanctuary */}
+      {/* 2. Classical Greek Pantheon Summit Sanctuary (Physically anchored to mountain peak) */}
       <group position={[px, py, pz]}>
-        {/* Tier 1: Lower Circular Marble Foundation */}
-        <mesh position={[0, -2.4, 0]} receiveShadow>
-          <cylinderGeometry args={[20.5, 23, 2.2, 48]} />
+        {/* Sub-Stylobate: Chiseled Ashlar Limestone Bedrock Anchor */}
+        <mesh position={[0, -4.2, 0]} receiveShadow>
+          <cylinderGeometry args={[22.5, 26.5, 4.0, 36]} />
           <meshStandardMaterial
-            map={marbleTexture}
-            color="#E2E8F0"
-            roughness={0.4}
-            metalness={0.15}
+            map={rockTexture}
+            color="#222B32"
+            roughness={0.94}
+            metalness={0.05}
           />
         </mesh>
 
-        {/* Tier 2: Upper Pentelic White Marble Sanctuary Dais */}
+        {/* Tier 1: Lower Stepped Weathered Marble Foundation */}
+        <mesh position={[0, -1.8, 0]} receiveShadow>
+          <cylinderGeometry args={[20.5, 22.5, 1.8, 48]} />
+          <meshStandardMaterial
+            map={marbleTexture}
+            color="#D8DEE4"
+            roughness={0.55}
+            metalness={0.08}
+          />
+        </mesh>
+
+        {/* Tier 2: Upper Pentelic Weathered Marble Stylobate */}
         <mesh position={[0, -0.6, 0]} receiveShadow>
-          <cylinderGeometry args={[18.5, 19.5, 1.4, 48]} />
+          <cylinderGeometry args={[18.5, 19.5, 1.2, 48]} />
           <meshStandardMaterial
             map={marbleTexture}
-            color="#FFFFFF"
-            roughness={0.25}
-            metalness={0.2}
+            color="#EAEFF4"
+            roughness={0.45}
+            metalness={0.08}
           />
         </mesh>
 
-        {/* Gilded Inner Concentric Ring */}
-        <mesh position={[0, 0.12, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[11.5, 12.2, 48]} />
+        {/* Weathered Bronze Inlay Ring (Restrained ancient patina, zero arcade emissive glow) */}
+        <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[11.5, 12.0, 48]} />
           <meshStandardMaterial
-            color={CELESTIAL_THEME.sun.color}
-            emissive={CELESTIAL_THEME.sun.haloColor}
-            emissiveIntensity={0.6}
-            roughness={0.2}
-            metalness={0.9}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
-
-        {/* Outer Gilded Inlay Rim */}
-        <mesh position={[0, 0.12, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[16.8, 17.5, 48]} />
-          <meshStandardMaterial
-            color={CELESTIAL_THEME.sun.color}
-            emissive={CELESTIAL_THEME.sun.haloColor}
-            emissiveIntensity={0.8}
-            roughness={0.15}
-            metalness={0.95}
+            color="#785B38"
+            roughness={0.65}
+            metalness={0.6}
             side={THREE.DoubleSide}
           />
         </mesh>
@@ -248,92 +232,49 @@ export default function MountOlympus() {
           <GreekColumn key={col.id} position={col.pos} height={8.2} radius={0.52} />
         ))}
 
-        {/* Central Altar with Sacred Olympian Eternal Fire */}
+        {/* Central Altar with Sacred Olympian Hearth Fire */}
         <group position={[0, 0.1, 0]}>
-          {/* Altar Pedestal */}
+          {/* Weathered Stone Altar Pedestal */}
           <mesh position={[0, 0.8, 0]} castShadow receiveShadow>
             <cylinderGeometry args={[1.8, 2.4, 1.6, 24]} />
             <meshStandardMaterial
               map={marbleTexture}
               color="#CBD5E1"
-              roughness={0.3}
-              metalness={0.2}
+              roughness={0.55}
+              metalness={0.1}
             />
           </mesh>
 
-          {/* Golden Brazier Bowl */}
+          {/* Antique Bronze Brazier Basin */}
           <mesh position={[0, 1.8, 0]} castShadow>
             <cylinderGeometry args={[2.2, 1.2, 0.8, 24]} />
             <meshStandardMaterial
-              color="#F59E0B"
-              emissive="#D97706"
-              emissiveIntensity={0.4}
-              roughness={0.2}
-              metalness={0.85}
+              color="#5C4524"
+              roughness={0.58}
+              metalness={0.7}
             />
           </mesh>
 
-          {/* Sacred Flame Mesh */}
-          <mesh ref={flameRef} position={[0, 2.5, 0]}>
-            <octahedronGeometry args={[0.9, 2]} />
+          {/* Living Warm Amber Sacred Flame */}
+          <mesh ref={flameRef} position={[0, 2.4, 0]}>
+            <octahedronGeometry args={[0.75, 2]} />
             <meshBasicMaterial
-              color="#FDE047"
+              color="#E59E26"
               transparent
-              opacity={0.85}
+              opacity={0.88}
             />
           </mesh>
+
+          {/* Subtle Local Altar Warmth */}
+          <pointLight
+            position={[0, 2.6, 0]}
+            color="#E59E26"
+            intensity={12}
+            distance={14}
+            decay={2}
+          />
         </group>
       </group>
-
-      {/* 3. Divine Peak Light Shaft & Solar Column */}
-      <group ref={beaconRef} position={[bx, by + 16, bz]}>
-        {/* Core brilliant column */}
-        <mesh>
-          <cylinderGeometry args={[1.6, 4.2, 46, 24, 1, true]} />
-          <meshBasicMaterial
-            color={CELESTIAL_THEME.sun.color}
-            transparent
-            opacity={0.42}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
-
-        {/* Outer amber radiance sheath */}
-        <mesh>
-          <cylinderGeometry args={[5.2, 11.0, 56, 24, 1, true]} />
-          <meshBasicMaterial
-            color={CELESTIAL_THEME.sun.haloColor}
-            transparent
-            opacity={0.18}
-            side={THREE.DoubleSide}
-          />
-        </mesh>
-      </group>
-
-      {/* 4. Celestial Halo Torus Ring */}
-      <mesh
-        ref={ringRef}
-        position={[rx, ry, rz]}
-        rotation={[Math.PI / 2.3, 0, 0]}
-      >
-        <torusGeometry args={[10.5, 0.35, 16, 64]} />
-        <meshStandardMaterial
-          color={CELESTIAL_THEME.sun.color}
-          emissive={CELESTIAL_THEME.sun.haloColor}
-          emissiveIntensity={0.9}
-          roughness={0.15}
-          metalness={0.95}
-        />
-      </mesh>
-
-      {/* 6. Summit Divine Point Light */}
-      <pointLight
-        position={[bx, by + 8, bz]}
-        color={CELESTIAL_THEME.sun.color}
-        intensity={80}
-        distance={65}
-        decay={2}
-      />
     </group>
   );
 }

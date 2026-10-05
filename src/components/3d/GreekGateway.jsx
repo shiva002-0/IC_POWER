@@ -62,7 +62,6 @@ export default function GreekGateway() {
   const rightFlameRef = useRef(null);
   const leftLightRef = useRef(null);
   const rightLightRef = useRef(null);
-  const portalGlowRef = useRef(null);
 
   const marbleTex = useMemo(() => createMarbleTexture(512), []);
   const goldTex = useMemo(() => createGoldLeafTexture(256), []);
@@ -127,28 +126,25 @@ export default function GreekGateway() {
     return geo;
   }, []);
 
-  // Animate the eternal sacred flames and portal shimmering glow
+  // Animate the eternal sacred flames
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
     const leftFlicker = 1.0 + Math.sin(t * 11.0) * 0.12 + Math.cos(t * 7.5) * 0.08;
     const rightFlicker = 1.0 + Math.cos(t * 9.5) * 0.12 + Math.sin(t * 8.2) * 0.08;
 
     if (leftFlameRef.current) {
-      leftFlameRef.current.scale.set(leftFlicker, leftFlicker * 1.25, leftFlicker);
-      leftFlameRef.current.rotation.y = t * 1.5;
+      leftFlameRef.current.scale.set(leftFlicker, leftFlicker * 1.2, leftFlicker);
+      leftFlameRef.current.rotation.y = t * 1.2;
     }
     if (rightFlameRef.current) {
-      rightFlameRef.current.scale.set(rightFlicker, rightFlicker * 1.25, rightFlicker);
-      rightFlameRef.current.rotation.y = -t * 1.5;
+      rightFlameRef.current.scale.set(rightFlicker, rightFlicker * 1.2, rightFlicker);
+      rightFlameRef.current.rotation.y = -t * 1.2;
     }
     if (leftLightRef.current) {
-      leftLightRef.current.intensity = 45 * leftFlicker;
+      leftLightRef.current.intensity = 15 * leftFlicker;
     }
     if (rightLightRef.current) {
-      rightLightRef.current.intensity = 45 * rightFlicker;
-    }
-    if (portalGlowRef.current) {
-      portalGlowRef.current.material.opacity = 0.22 + Math.sin(t * 2.0) * 0.08;
+      rightLightRef.current.intensity = 15 * rightFlicker;
     }
   });
 
@@ -337,11 +333,10 @@ export default function GreekGateway() {
         <pointLight
           ref={leftLightRef}
           position={[0, 8.5, 0]}
-          color="#F59E0B"
-          intensity={45}
-          distance={32}
+          color="#E59E26"
+          intensity={15}
+          distance={20}
           decay={2}
-          castShadow
         />
       </group>
 
@@ -364,25 +359,12 @@ export default function GreekGateway() {
         <pointLight
           ref={rightLightRef}
           position={[0, 8.5, 0]}
-          color="#F59E0B"
-          intensity={45}
-          distance={32}
+          color="#E59E26"
+          intensity={15}
+          distance={20}
           decay={2}
-          castShadow
         />
       </group>
-
-      {/* 8. Luminous Celestial Gateway Portal Beam */}
-      {/* Translucent divine veil that the camera flies straight through */}
-      <mesh ref={portalGlowRef} position={[0, 13.5, 0]}>
-        <planeGeometry args={[22, 24]} />
-        <meshBasicMaterial
-          color={CELESTIAL_THEME.sun.color}
-          transparent
-          opacity={0.22}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
     </group>
   );
 }

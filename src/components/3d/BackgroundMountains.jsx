@@ -2,87 +2,86 @@ import React, { useMemo } from 'react';
 import * as THREE from 'three';
 import { CELESTIAL_THEME } from '../../config/olympusConfig';
 
+/**
+ * Continuous 360-degree geological horizon landscape
+ * Replaces rectangular terrain cards with a seamless continuous mountain ring
+ * providing true geological depth, arêtes, saddles, and atmospheric perspective.
+ */
+function createMountainRingGeometry(radius = 750, height = 145, radialSegments = 180, heightSegments = 24, seed = 1.0) {
+  const geo = new THREE.CylinderGeometry(radius * 0.96, radius * 1.04, height, radialSegments, heightSegments, true);
+  const pos = geo.attributes.position;
+
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i);
+    const y = pos.getY(i);
+    const z = pos.getZ(i);
+
+    const angle = Math.atan2(z, x);
+    // Vertical factor from 0.0 (base at sea level) to 1.0 (ridge peak)
+    const hNorm = (y + height * 0.5) / height;
+
+    if (hNorm > 0.05) {
+      // Multi-octave continuous circular fractal profile (seamless 2PI periodic harmonics)
+      const oct1 = Math.sin(angle * 3.0 + seed) * 36.0;
+      const oct2 = Math.cos(angle * 7.0 - seed * 1.5) * 18.0;
+      const oct3 = Math.sin(angle * 14.0 + seed * 2.3) * 9.0;
+      const oct4 = Math.cos(angle * 28.0) * 4.5;
+      const oct5 = (Math.sin(angle * 56.0) + Math.cos(angle * 42.0)) * 2.0;
+
+      // Geological arête ridges (knife-edge peaks)
+      const arete1 = Math.pow(Math.abs(Math.sin(angle * 5.0 + seed * 0.7)), 2.8) * 42.0;
+      const arete2 = Math.pow(Math.abs(Math.cos(angle * 9.0 - seed * 1.1)), 3.2) * 26.0;
+
+      const totalDisplacement = (oct1 + oct2 + oct3 + oct4 + oct5 + arete1 + arete2) * Math.pow(hNorm, 1.4);
+
+      // Displace height and radius
+      pos.setY(i, y + totalDisplacement * 0.85);
+
+      const rad = Math.sqrt(x * x + z * z) + totalDisplacement * 0.45;
+      pos.setX(i, Math.cos(angle) * rad);
+      pos.setZ(i, Math.sin(angle) * rad);
+    } else {
+      // Anchored into the sea at Y = 0
+      pos.setY(i, -2.0);
+    }
+  }
+
+  geo.computeVertexNormals();
+  return geo;
+}
+
 export default function BackgroundMountains() {
-  // Generate panoramic background mountain ridges
-  const mountainChains = useMemo(() => {
-    const chains = [];
-
-    // Distinct mountain masses placed around the horizon (radii 180 to 320, heights 50 to 90)
-    const configs = [
-      // Far Left Greek Ridge
-      { angle: -1.8, distance: 220, width: 220, depth: 90, height: 75, seed: 1.1 },
-      // Rear Left Pierian Range
-      { angle: -2.7, distance: 260, width: 260, depth: 100, height: 85, seed: 2.3 },
-      // Rear Distant Horizon Spine
-      { angle: 3.14, distance: 290, width: 320, depth: 110, height: 95, seed: 3.7 },
-      // Rear Right Aegean Coastal Ridge
-      { angle: 2.6, distance: 250, width: 240, depth: 95, height: 80, seed: 4.5 },
-      // Far Right Olympus Foothills
-      { angle: 1.7, distance: 210, width: 200, depth: 85, height: 70, seed: 5.2 },
-      // Distant Ocean Island Peaks (south-east horizon)
-      { angle: 0.8, distance: 280, width: 140, depth: 60, height: 45, seed: 6.8 },
-      { angle: -0.7, distance: 270, width: 150, depth: 65, height: 50, seed: 7.4 }
-    ];
-
-    configs.forEach((cfg, idx) => {
-      const segsX = 32;
-      const segsY = 16;
-      const geo = new THREE.PlaneGeometry(cfg.width, cfg.depth, segsX, segsY);
-      const pos = geo.attributes.position;
-
-      for (let i = 0; i < pos.count; i++) {
-        const u = pos.getX(i) / (cfg.width * 0.5); // -1 to 1
-        const v = pos.getY(i) / (cfg.depth * 0.5); // -1 to 1
-
-        // Ridge profile that peaks in center and tapers at edges
-        const edgeFalloff = Math.cos(u * Math.PI * 0.5) * Math.cos(v * Math.PI * 0.5);
-        if (edgeFalloff > 0) {
-          const ridge1 = Math.sin(u * 6.0 + cfg.seed) * 0.35 + 0.65;
-          const ridge2 = Math.cos(u * 12.0 - v * 4.0 + cfg.seed * 2.0) * 0.18;
-          const crag = Math.sin(u * 22.0) * 0.08;
-          
-          const elevation = (ridge1 + ridge2 + crag) * cfg.height * edgeFalloff;
-          pos.setZ(i, Math.max(0, elevation));
-        } else {
-          pos.setZ(i, 0);
-        }
-      }
-
-      geo.computeVertexNormals();
-
-      const posX = Math.sin(cfg.angle) * cfg.distance;
-      const posZ = Math.cos(cfg.angle) * cfg.distance - 40; // slight offset toward main mountain
-      const rotY = cfg.angle + Math.PI; // Face toward scene center
-
-      chains.push({
-        id: idx,
-        geometry: geo,
-        position: [posX, 0, posZ],
-        rotation: [-Math.PI / 2, 0, rotY]
-      });
-    });
-
-    return chains;
+  // Dual-layer parallax mountain ranges:
+  // 1. Mid-distant Pierian Range (R=680)
+  // 2. Far-horizon Macedonian Spine (R=1150)
+  const { midRangeGeo, farRangeGeo } = useMemo(() => {
+    return {
+      midRangeGeo: createMountainRingGeometry(680, 135, 160, 20, 2.71),
+      farRangeGeo: createMountainRingGeometry(1150, 210, 180, 24, 5.18)
+    };
   }, []);
 
   return (
-    <group>
-      {mountainChains.map((chain) => (
-        <mesh
-          key={chain.id}
-          geometry={chain.geometry}
-          position={chain.position}
-          rotation={chain.rotation}
-          receiveShadow
-        >
-          <meshStandardMaterial
-            color="#141E2E"
-            roughness={0.95}
-            metalness={0.08}
-            flatShading={true}
-          />
-        </mesh>
-      ))}
+    <group position={[0, 0, -40]}>
+      {/* 1. Mid-Distant Pierian Range */}
+      <mesh geometry={midRangeGeo} receiveShadow>
+        <meshStandardMaterial
+          color="#1C2836"
+          roughness={0.92}
+          metalness={0.06}
+          flatShading={true}
+        />
+      </mesh>
+
+      {/* 2. Far-Horizon Macedonian Spine (Atmospheric Rayleigh Haze) */}
+      <mesh geometry={farRangeGeo} receiveShadow>
+        <meshStandardMaterial
+          color="#141E2B"
+          roughness={0.96}
+          metalness={0.04}
+          flatShading={true}
+        />
+      </mesh>
     </group>
   );
 }
